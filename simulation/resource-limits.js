@@ -1,114 +1,198 @@
-#pragma once
-#include <eosio/chain/exceptions.hpp>
-#include <eosio/chain/types.hpp>
-#include <eosio/chain/config.hpp>
-#include <eosio/chain/trace.hpp>
-#include <eosio/chain/snapshot.hpp>
-#include <chainbase/chainbase.hpp>
-#include <set>
+const {EOS_ASSERT, tx_cpu_usage_exceeded, transaction_exception} = require('./common.js');
+const {elastic_limit_parameters, resource_limits_object, resource_usage_object, resource_limits_config_object, resource_limits_state_object} = require('./resource-limits-private.js');
 
-namespace eosio { namespace chain {
+class account_resource_limit {
+  constructor() {
+    this.used = 0; ///< quantity used in current window
+    this.available = 0; ///< quantity available in current window (based upon fractional reserve)
+    this.max = 0; ///< max per window under current congestion
+  }
+};
 
-   class deep_mind_handler;
+class resource_limits_manager {
+  constructor(db) {
+    this.db = db
+  }
 
-   namespace resource_limits {
-   namespace impl {
-      template<typename T>
-      struct ratio {
-         static_assert(std::is_integral<T>::value, "ratios must have integral types");
-         T numerator;
-         T denominator;
+  initialize_database() {
+    this.db.accounts = {};
+    this.db.block_params = {
+      resource_limits_config_object: new resource_limits_config_object(),
+      resource_limits_state_object: new resource_limits_state_object();
+    };
+  }
 
-         friend inline bool operator ==( const ratio& lhs, const ratio& rhs ) {
-            return std::tie(lhs.numerator, lhs.denominator) == std::tie(rhs.numerator, rhs.denominator);
-         }
+  initialize_account(account ) {
+    this.db.accounts[account] = {
+      bl: new resource_limits_object(),
+      bu: new resource_usage_object(),
+      ram_usage: 0
+    };
+  }
 
-         friend inline bool operator !=( const ratio& lhs, const ratio& rhs ) {
-            return !(lhs == rhs);
-         }
-      };
-   }
+  void set_block_parameters(cpu_limit_parameters, net_limit_parameters ) {
+    cpu_limit_parameters.validate();
+    net_limit_parameters.validate();
+    const config = db.block_params.resource_limits_config_object;
+    if( config.cpu_limit_parameters.equals(cpu_limit_parameters) && config.net_limit_parameters.equals(net_limit_parameters) )
+       return;
+    config.cpu_limit_parameters = cpu_limit_parameters;
+    config.net_limit_parameters = net_limit_parameters;
+  }
 
-   using ratio = impl::ratio<uint64_t>;
+  void update_account_usage( accounts , time_slot) {
+    const config = db.block_params.resource_limits_config_object;
 
-   struct elastic_limit_parameters {
-      uint64_t target;           // the desired usage
-      uint64_t max;              // the maximum usage
-      uint32_t periods;          // the number of aggregation periods that contribute to the average usage
+    for(let a of accounts) {
+      let bu = this.get_resource_limits_object_by_owner(a).bu;
+      bu.net_usage.add( 0, time_slot, config.account_net_usage_average_window );
+      bu.cpu_usage.add( 0, time_slot, config.account_cpu_usage_average_window );
+    }
+  }
 
-      uint32_t max_multiplier;   // the multiplier by which virtual space can oversell usage when uncongested
-      ratio    contract_rate;    // the rate at which a congested resource contracts its limit
-      ratio    expand_rate;       // the rate at which an uncongested resource expands its limits
+  void add_transaction_usage( accounts, cpu_usage, net_usage, ordinal ) {
+    const config = db.block_params.resource_limits_config_object;
+    const state = db.block_params.resource_limits_state_object;
 
-      void validate()const; // throws if the parameters do not satisfy basic sanity checks
+    for(let a of accounts) {
+      let bu = this.get_resource_limits_object_by_owner(a).bu;
+      let {unused, net_weight, cpu_weight} = this.get_account_limits(a);
+      bu.net_usage.add( net_usage, time_slot, config.account_net_usage_average_window );
+      bu.cpu_usage.add( cpu_usage, time_slot, config.account_cpu_usage_average_window );
 
-      friend inline bool operator ==( const elastic_limit_parameters& lhs, const elastic_limit_parameters& rhs ) {
-         return std::tie(lhs.target, lhs.max, lhs.periods, lhs.max_multiplier, lhs.contract_rate, lhs.expand_rate)
-                  == std::tie(rhs.target, rhs.max, rhs.periods, rhs.max_multiplier, rhs.contract_rate, rhs.expand_rate);
+      if( cpu_weight >= 0 && state.total_cpu_weight > 0 ) {
+         const window_size = config.account_cpu_usage_average_window;
+         const virtual_network_capacity_in_window = state.virtual_cpu_limit * window_size;
+         const cpu_used_in_window                 = (usage.cpu_usage.value_ex * window_size) / config::rate_limiting_precision;
+
+         const user_weight     = cpu_weight;
+         const all_user_weight = state.total_cpu_weight;
+
+         const max_user_use_in_window = (virtual_network_capacity_in_window * user_weight) / all_user_weight;
+
+         EOS_ASSERT( cpu_used_in_window <= max_user_use_in_window,
+                     tx_cpu_usage_exceeded,
+                     "authorizing account '${n}' has insufficient cpu resources for this transaction",
+                     "n", a,
+                     "cpu_used_in_window",cpu_used_in_window,
+                     "max_user_use_in_window",max_user_use_in_window );
       }
+    }
+  }
 
-      friend inline bool operator !=( const elastic_limit_parameters& lhs, const elastic_limit_parameters& rhs ) {
-         return !(lhs == rhs);
-      }
-   };
+  add_pending_ram_usage( account, ram_delta ) {
+    if (ram_delta === 0) {
+       return;
+    }
 
-   struct account_resource_limit {
-      int64_t used = 0; ///< quantity used in current window
-      int64_t available = 0; ///< quantity available in current window (based upon fractional reserve)
-      int64_t max = 0; ///< max per window under current congestion
-   };
+    let usage = this.get_resource_limits_object_by_owner(a);
 
-   class resource_limits_manager {
-      public:
 
-         explicit resource_limits_manager(chainbase::database& db, std::function<deep_mind_handler*()> get_deep_mind_logger)
-         :_db(db),_get_deep_mind_logger(get_deep_mind_logger)
-         {
-         }
+    EOS_ASSERT( ram_delta <= 0 || Number.MAX_SAFE_INTEGER - usage.ram_usage >= ram_delta, transaction_exception,
+               "Ram usage delta would overflow UINT64_MAX");
+    EOS_ASSERT(ram_delta >= 0 || usage.ram_usage >= (-ram_delta), transaction_exception,
+               "Ram usage delta would underflow UINT64_MAX");
 
-         void add_indices();
-         void initialize_database();
-         void add_to_snapshot( const snapshot_writer_ptr& snapshot ) const;
-         void read_from_snapshot( const snapshot_reader_ptr& snapshot );
+    usage.ram_usage += ram_delta;
+  }
 
-         void initialize_account( const account_name& account );
-         void set_block_parameters( const elastic_limit_parameters& cpu_limit_parameters, const elastic_limit_parameters& net_limit_parameters );
+  get_resource_limits_object_by_owner(account) {
+    return this.db.accounts[account];
+  }
 
-         void update_account_usage( const flat_set<account_name>& accounts, uint32_t ordinal );
-         void add_transaction_usage( const flat_set<account_name>& accounts, uint64_t cpu_usage, uint64_t net_usage, uint32_t ordinal );
+  verify_account_ram_usage( account ) {
+    const {ram_bytes, net_weight, cpu_weight} = get_account_limits(account);
+    let usage = this.get_resource_limits_object_by_owner(a];
 
-         void add_pending_ram_usage( const account_name account, int64_t ram_delta );
-         void verify_account_ram_usage( const account_name accunt )const;
+    if( ram_bytes >= 0 ) {
+       EOS_ASSERT( usage.ram_usage <= ram_bytes, ram_usage_exceeded,
+                   "account ${account} has insufficient ram; needs ${needs} bytes has ${available} bytes",
+                   "account", account, "needs",usage.ram_usage, "available",ram_bytes)              );
+    }
+  }
 
-         /// set_account_limits returns true if new ram_bytes limit is more restrictive than the previously set one
-         bool set_account_limits( const account_name& account, int64_t ram_bytes, int64_t net_weight, int64_t cpu_weight);
-         void get_account_limits( const account_name& account, int64_t& ram_bytes, int64_t& net_weight, int64_t& cpu_weight) const;
+  /// set_account_limits returns true if new ram_bytes limit is more restrictive than the previously set one
+  set_account_limits( account, ram_bytes, net_weight, cpu_weight) {
+    //const auto& usage = _db.get<resource_usage_object,by_owner>( account );
+    /*
+     * Since we need to delay these until the next resource limiting boundary, these are created in a "pending"
+     * state or adjusted in an existing "pending" state.  The chain controller will collapse "pending" state into
+     * the actual state at the next appropriate boundary.
+     */
+    auto find_or_create_pending_limits = [&]() -> const resource_limits_object& {
+       const auto* pending_limits = _db.find<resource_limits_object, by_owner>( boost::make_tuple(true, account) );
+       if (pending_limits == nullptr) {
+          const auto& limits = _db.get<resource_limits_object, by_owner>( boost::make_tuple(false, account));
+          return _db.create<resource_limits_object>([&](resource_limits_object& pending_limits){
+             pending_limits.owner = limits.owner;
+             pending_limits.ram_bytes = limits.ram_bytes;
+             pending_limits.net_weight = limits.net_weight;
+             pending_limits.cpu_weight = limits.cpu_weight;
+             pending_limits.pending = true;
+          });
+       } else {
+          return *pending_limits;
+       }
+    };
 
-         bool is_unlimited_cpu( const account_name& account ) const;
+    // update the users weights directly
+    auto& limits = find_or_create_pending_limits();
 
-         void process_account_limit_updates();
-         void process_block_usage( uint32_t block_num );
+    bool decreased_limit = false;
 
-         // accessors
-         uint64_t get_total_cpu_weight() const;
-         uint64_t get_total_net_weight() const;
+    if( ram_bytes >= 0 ) {
 
-         uint64_t get_virtual_block_cpu_limit() const;
-         uint64_t get_virtual_block_net_limit() const;
+       decreased_limit = ( (limits.ram_bytes < 0) || (ram_bytes < limits.ram_bytes) );
 
-         uint64_t get_block_cpu_limit() const;
-         uint64_t get_block_net_limit() const;
+       /*
+       if( limits.ram_bytes < 0 ) {
+          EOS_ASSERT(ram_bytes >= usage.ram_usage, wasm_execution_error, "converting unlimited account would result in overcommitment [commit=${c}, desired limit=${l}]", ("c", usage.ram_usage)("l", ram_bytes));
+       } else {
+          EOS_ASSERT(ram_bytes >= usage.ram_usage, wasm_execution_error, "attempting to release committed ram resources [commit=${c}, desired limit=${l}]", ("c", usage.ram_usage)("l", ram_bytes));
+       }
+       */
+    }
 
-         std::pair<int64_t, bool> get_account_cpu_limit( const account_name& name, uint32_t greylist_limit = config::maximum_elastic_resource_multiplier ) const;
-         std::pair<int64_t, bool> get_account_net_limit( const account_name& name, uint32_t greylist_limit = config::maximum_elastic_resource_multiplier ) const;
+    _db.modify( limits, [&]( resource_limits_object& pending_limits ){
+       pending_limits.ram_bytes = ram_bytes;
+       pending_limits.net_weight = net_weight;
+       pending_limits.cpu_weight = cpu_weight;
 
-         std::pair<account_resource_limit, bool> get_account_cpu_limit_ex( const account_name& name, uint32_t greylist_limit = config::maximum_elastic_resource_multiplier ) const;
-         std::pair<account_resource_limit, bool> get_account_net_limit_ex( const account_name& name, uint32_t greylist_limit = config::maximum_elastic_resource_multiplier ) const;
+       if (auto dm_logger = _get_deep_mind_logger()) {
+          dm_logger->on_set_account_limits(pending_limits);
+       }
+    });
 
-         int64_t get_account_ram_usage( const account_name& name ) const;
+    return decreased_limit;
+  }
 
-      private:
-         chainbase::database&         _db;
-         std::function<deep_mind_handler*()> _get_deep_mind_logger;
-   };
-} } } /// eosio::chain
+  void get_account_limits( const account_name& account, int64_t& ram_bytes, int64_t& net_weight, int64_t& cpu_weight) const;
+
+  bool is_unlimited_cpu( const account_name& account ) const;
+
+  void process_account_limit_updates();
+  void process_block_usage( uint32_t block_num );
+
+  // accessors
+  uint64_t get_total_cpu_weight() const;
+  uint64_t get_total_net_weight() const;
+
+  uint64_t get_virtual_block_cpu_limit() const;
+  uint64_t get_virtual_block_net_limit() const;
+
+  uint64_t get_block_cpu_limit() const;
+  uint64_t get_block_net_limit() const;
+
+  std::pair<int64_t, bool> get_account_cpu_limit( const account_name& name, uint32_t greylist_limit = config::maximum_elastic_resource_multiplier ) const;
+  std::pair<int64_t, bool> get_account_net_limit( const account_name& name, uint32_t greylist_limit = config::maximum_elastic_resource_multiplier ) const;
+
+  std::pair<account_resource_limit, bool> get_account_cpu_limit_ex( const account_name& name, uint32_t greylist_limit = config::maximum_elastic_resource_multiplier ) const;
+  std::pair<account_resource_limit, bool> get_account_net_limit_ex( const account_name& name, uint32_t greylist_limit = config::maximum_elastic_resource_multiplier ) const;
+
+  get_account_ram_usage( name ) {
+    return this.get_resource_limits_object_by_owner(a).ram_usage;
+  }
+
+  chainbase::database&         _db;
+  std::function<deep_mind_handler*()> _get_deep_mind_logger;
+}

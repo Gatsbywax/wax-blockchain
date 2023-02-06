@@ -1,3 +1,15 @@
+/*
+  Rough fee formula
+
+  Total CPU: 1000ms
+  CPU Tx: 1ms
+  TOTAL CPU STAKE: 100WAX
+
+  Fee = (1/1000)*100
+
+  Fee = fee_constant*(CPU_Tx/TOTAL_CPU) * TOTAL_CPU_STAKE
+*/
+
 const {exponential_moving_average_accumulator} = require('./resource-limits-private.js');
 
 const emac = new exponential_moving_average_accumulator();
