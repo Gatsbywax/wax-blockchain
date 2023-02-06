@@ -1,6 +1,5 @@
 const {EOS_ASSERT, static_assert, rate_limiting_state_inconsistent, resource_limit_exception} = require('./common.js');
 const config = require('./config.js');
-const {elastic_limit_parameters} = require('./resource-limits.js');
 
 const Precision = 1;
 
@@ -8,6 +7,9 @@ function integer_divide_ceil(num, den) {
   return num / den;
   // return Math.floor(num / den);
 }
+
+const max_raw_value = Number.MAX_SAFE_INTEGER / Precision;
+
 
 class Ratio {
   constructor(n, d) {
@@ -18,13 +20,37 @@ class Ratio {
   times(x) {
     return x * integer_divide_ceil(this.n, this.d);
   }
+
+  equals(rhs) {
+    return this.n === rhs.n && this.d === rhs.d;
+  }
 }
 
 function make_ratio(n, d) {
    return new Ratio(n, d);
 }
 
-const max_raw_value = Number.MAX_SAFE_INTEGER / Precision;
+class elastic_limit_parameters {
+  constructor() {
+    this.target = 0;           // the desired usage
+    this.max = 0;              // the maximum usage
+    this.periods = 0;          // the number of aggregation periods that contribute to the average usage
+
+    this.max_multiplier = 0;   // the multiplier by which virtual space can oversell usage when uncongested
+    this.contract_rate = make_ratio(0, 0);    // the rate at which a congested resource contracts its limit
+    this.expand_rate = make_ratio(0, 0);       // the rate at which an uncongested resource expands its limits
+  }
+
+  validate() {
+    EOS_ASSERT( periods > 0, resource_limit_exception, "elastic limit parameter 'periods' cannot be zero" );
+    EOS_ASSERT( contract_rate.d > 0, resource_limit_exception, "elastic limit parameter 'contract_rate' is not a well-defined ratio" );
+    EOS_ASSERT( expand_rate.d > 0, resource_limit_exception, "elastic limit parameter 'expand_rate' is not a well-defined ratio" );
+  } // throws if the parameters do not satisfy basic sanity checks
+
+  equals(rhs ) {
+     return this.target === rhs.target && this.max === rhs.max && this.periods === rhs.periods && this.max_multiplier === rhs.max_multiplier && this.contract_rate.equals(rhs.contract_rate) && this.expand_rate.equals(rhs.expand_rate);
+  }
+};
 
 class exponential_moving_average_accumulator
 {
@@ -130,9 +156,13 @@ class resource_limits_config_object {
     this.account_cpu_usage_average_window = config.account_cpu_usage_average_window_ms / config.block_interval_ms;
     this.account_net_usage_average_window = config.account_net_usage_average_window_ms / config.block_interval_ms;
   }
+
+  equals(rhs) {
+    return this.id = rhs.id && this.cpu_limit_parameters = rhs.cpu_limit_parameters && this.net_limit_parameters = rhs.net_limit_parameters && this.account_cpu_usage_average_window = rhs.account_cpu_usage_average_window && this.account_net_usage_average_window = rhs.account_net_usage_average_window;
+  }
 };
 
-class resource_limits_state_object : public chainbase::object<resource_limits_state_object_type, resource_limits_state_object> {
+class resource_limits_state_object {
    constructor() {
      this.id = null;
 
