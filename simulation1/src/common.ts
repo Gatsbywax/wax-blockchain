@@ -25,6 +25,14 @@ export function EOS_PERCENT(value: number, percentage: number) {
     )
   );
 }
+export const MaxUint64 = JSBI.BigInt("0xffffffffffffffff");
+
+export function integer_divide_ceil(num: JSBI, den: JSBI) {
+  return JSBI.add(
+    JSBI.divide(num, den),
+    JSBI.remainder(num, den) > JSBI.BigInt(0) ? JSBI.BigInt(1) : JSBI.BigInt(0)
+  );
+}
 
 export const rate_limiting_state_inconsistent =
   "rate_limiting_state_inconsistent";

@@ -371,6 +371,12 @@ export class resource_limits_state_object {
   }
 }
 
+export interface account_resource_limit {
+  used: number; ///< quantity used in current window
+  available: number; ///< quantity available in current window (based upon fractional reserve)
+  max: number; ///< max per window under current congestion
+}
+
 export function update_elastic_limit(
   current_limit: number,
   average_usage: number,
