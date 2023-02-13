@@ -25,6 +25,7 @@ const state = new resource_limits_state_object(
   config.cpu_limit_parameters.max,
   config.net_limit_parameters.max
 );
+
 const resource_limits_db: resource_limits_object[] = [];
 const resource_usage_db: resource_usage_object[] = [];
 
@@ -181,35 +182,26 @@ function set_account_limits(
     (x) => x.owner === account && x.pending == true
   );
   let limits;
+  let decreased_limit = false;
   if (!pending_limits) {
-    pending_limits = resource_limits_db.find(
+    limits = resource_limits_db.find(
       (x) => x.owner === account && x.pending == false
     );
-    if (!pending_limits) {
-      pending_limits = new resource_limits_object(
-        account,
-        true,
-        net_weight,
-        cpu_weight,
-        ram_bytes
-      );
-      resource_limits_db.push(pending_limits);
+    if (!limits) {
+      throw new Error(`account ${account} not exist`);
     }
-  }
+    pending_limits = new resource_limits_object(
+      account,
+      true,
+      net_weight,
+      cpu_weight,
+      ram_bytes
+    );
+    resource_limits_db.push(pending_limits);
 
-  let decreased_limit = false;
-
-  if (ram_bytes >= 0) {
-    decreased_limit =
-      pending_limits?.ram_bytes < 0 || ram_bytes < pending_limits?.ram_bytes;
-
-    /*
-     if( limits.ram_bytes < 0 ) {
-        EOS_ASSERT(ram_bytes >= usage.ram_usage, wasm_execution_error, "converting unlimited account would result in overcommitment [commit=${c}, desired limit=${l}]", ("c", usage.ram_usage)("l", ram_bytes));
-     } else {
-        EOS_ASSERT(ram_bytes >= usage.ram_usage, wasm_execution_error, "attempting to release committed ram resources [commit=${c}, desired limit=${l}]", ("c", usage.ram_usage)("l", ram_bytes));
-     }
-     */
+    if (ram_bytes >= 0) {
+      decreased_limit = limits?.ram_bytes < 0 || ram_bytes < limits.ram_bytes;
+    }
   }
 
   pending_limits.ram_bytes = ram_bytes;
@@ -229,23 +221,41 @@ function is_unlimited_cpu(account: String) {
   return false;
 }
 
-// function process_account_limit_updates() {
-//   const pendings = resource_limits_db.filter(
-//     (x) => x.pending === true
-//   );
-//   let total, value;
-//   for(const pending of pendings){
-//     {total, value} = update_state_and_value(state.total_ram_bytes,  pending.ram_bytes,  pending.ram_bytes, "ram_bytes");
-//     state.total_ram_bytes = total;
-//     pending.ram_bytes = value;
-//     {total, value} = update_state_and_value(state.total_cpu_weight,  pending.cpu_weight,  pending.cpu_weight, "cpu_weight");
-//     state.total_cpu_weight = total;
-//     pending.cpu_weight = value;
-//     {total, value} = update_state_and_value(state.total_net_weight,  pending.net_weight,  pending.net_weight, "net_weight");
-//     state.total_net_weight = total;
-//     pending.net_weight = value;
-//   }
-// }
+function process_account_limit_updates() {
+  const pendings = resource_limits_db.filter((x) => x.pending === true);
+  for (const pending of pendings) {
+    const actual_entry = resource_limits_db.find(
+      (x) => x.owner == pending.owner && x.pending === false
+    );
+    if (!actual_entry) throw new Error(`account ${pending.owner} not found`);
+    const { total: total_ram_bytes, value: ram_bytes } = update_state_and_value(
+      state.total_ram_bytes,
+      actual_entry.ram_bytes,
+      pending.ram_bytes,
+      "ram_bytes"
+    );
+    state.total_ram_bytes = total_ram_bytes;
+    pending.ram_bytes = ram_bytes;
+    const { total: total_cpu_weight, value: cpu_weight } =
+      update_state_and_value(
+        state.total_cpu_weight,
+        actual_entry.cpu_weight,
+        pending.cpu_weight,
+        "cpu_weight"
+      );
+    state.total_cpu_weight = cpu_weight;
+    pending.cpu_weight = cpu_weight;
+    const { total: total_net_weight, value: net_weight } =
+      update_state_and_value(
+        state.total_net_weight,
+        actual_entry.net_weight,
+        pending.net_weight,
+        "net_weight"
+      );
+    state.total_net_weight = total_net_weight;
+    pending.net_weight = net_weight;
+  }
+}
 
 function update_state_and_value(
   total: number,
