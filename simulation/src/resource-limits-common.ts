@@ -172,7 +172,7 @@ export function add_transaction_usage(
   );
 }
 
-function set_account_limits(
+export function set_account_limits(
   account: String,
   ram_bytes: number,
   net_weight: number,
@@ -221,7 +221,7 @@ function is_unlimited_cpu(account: String) {
   return false;
 }
 
-function process_account_limit_updates() {
+export function process_account_limit_updates() {
   const pendings = resource_limits_db.filter((x) => x.pending === true);
   for (const pending of pendings) {
     const actual_entry = resource_limits_db.find(
@@ -286,7 +286,7 @@ function update_state_and_value(
   return { total, value };
 }
 
-function process_block_usage(block_num: number) {
+export function process_block_usage(block_num: number) {
   state.average_block_cpu_usage.add(
     state.pending_cpu_usage,
     block_num,
@@ -308,7 +308,7 @@ function get_total_net_weight() {
   return state.total_net_weight;
 }
 
-function get_virtual_block_cpu_limit() {
+export function get_virtual_block_cpu_limit() {
   return state.virtual_cpu_limit;
 }
 
