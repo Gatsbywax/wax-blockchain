@@ -20,11 +20,8 @@ import {
   MaxUint64,
   integer_divide_ceil,
 } from "./common";
-const config = new resource_limits_config_object();
-const state = new resource_limits_state_object(
-  config.cpu_limit_parameters.max,
-  config.net_limit_parameters.max
-);
+let config: resource_limits_config_object;
+let state: resource_limits_state_object;
 
 const resource_limits_db: resource_limits_object[] = [];
 const resource_usage_db: resource_usage_object[] = [];
@@ -43,6 +40,14 @@ export function update_elastic_limit(
   return Math.min(
     Math.max(result, params.max),
     params.max * params.max_multiplier
+  );
+}
+
+export function initialize_database() {
+  config = new resource_limits_config_object();
+  state = new resource_limits_state_object(
+    config.cpu_limit_parameters.max,
+    config.net_limit_parameters.max
   );
 }
 
