@@ -13,6 +13,7 @@ import {
 } from "../src/common";
 
 import {
+  initialize_database,
   initialize_account,
   set_account_limits,
   process_account_limit_updates,
@@ -58,6 +59,7 @@ function expected_exponential_average_iterations(
 
 describe("resource_limits_test", () => {
   it("elastic_cpu_relax_contract", () => {
+    initialize_database();
     let desired_virtual_limit =
       constant.default_max_block_cpu_usage *
       constant.maximum_elastic_resource_multiplier;
