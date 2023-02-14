@@ -312,6 +312,14 @@ function get_block_net_limit() {
   return config.net_limit_parameters.max - state.pending_net_usage;
 }
 
+export function get_account_cpu_limit(
+  name: String,
+  greylist_limit: number = constant.maximum_elastic_resource_multiplier
+) {
+  let [arl, greylisted] = get_account_cpu_limit_ex(name, greylist_limit);
+  return { arl, greylisted };
+}
+
 function get_account_cpu_limit_ex(
   name: String,
   greylist_limit: number

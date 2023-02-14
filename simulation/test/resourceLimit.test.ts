@@ -22,6 +22,7 @@ import {
   add_transaction_usage,
   process_block_usage,
   get_virtual_block_net_limit,
+  get_account_cpu_limit,
 } from "../src/resource-limits-common";
 
 function expected_elastic_iterations(
@@ -77,14 +78,12 @@ describe("resource_limits_test", () => {
     let desired_virtual_limit =
       constant.default_max_block_cpu_usage *
       constant.maximum_elastic_resource_multiplier;
-    //   console.log("desired_virtual_limit", desired_virtual_limit)
     let expected_relax_iterations = expected_elastic_iterations(
       constant.default_max_block_cpu_usage,
       desired_virtual_limit,
       1000,
       999
     );
-    // console.log("expected_relax_iterations", expected_relax_iterations)
     // this is enough iterations for the average to reach/exceed the target (triggering congestion handling) and then the iterations to contract down to the min
     // subtracting 1 for the iteration that pulls double duty as reaching/exceeding the target and starting congestion handling
     let expected_contract_iterations =
@@ -104,7 +103,6 @@ describe("resource_limits_test", () => {
         100
       ) -
       1;
-    //   console.log("expected_contract_iterations", expected_contract_iterations)
     const account = "account1";
     initialize_account(account);
     set_account_limits(account, -1, -1, -1);
@@ -118,8 +116,6 @@ describe("resource_limits_test", () => {
       add_transaction_usage([account], 0, 0, iterations);
       process_block_usage(iterations++);
     }
-    // console.log("expected_relax_iterations", expected_relax_iterations)
-    // console.log("iterations", iterations)
     // expect(iterations).toEqual(expected_relax_iterations);
     expect(get_virtual_block_cpu_limit()).toEqual(desired_virtual_limit);
     // push maximum resources to go from idle back to congested as fast as possible
@@ -170,7 +166,6 @@ describe("resource_limits_test", () => {
         100
       ) -
       1;
-    //   console.log("expected_contract_iterations", expected_contract_iterations)
     const account = "account2";
     initialize_account(account);
     set_account_limits(account, -1, -1, -1);
@@ -190,8 +185,6 @@ describe("resource_limits_test", () => {
       );
       process_block_usage(iterations++ + parseInt(current_time_seconds));
     }
-    // console.log("expected_relax_iterations", expected_relax_iterations)
-    // console.log("iterations", iterations)
     // expect(iterations).toEqual(expected_relax_iterations);
     expect(get_virtual_block_net_limit()).toEqual(desired_virtual_limit);
     // push maximum resources to go from idle back to congested as fast as possible
@@ -211,5 +204,42 @@ describe("resource_limits_test", () => {
     expect(get_virtual_block_net_limit()).toEqual(
       constant.default_max_block_net_usage
     );
+  });
+});
+
+describe("weighted_capacity_cpu", () => {
+  it("weighted_capacity_cpu", () => {
+    const weights: number[] = [234, 511, 672, 800, 1213];
+    let total = 0;
+    for (const weight of weights) {
+      total += weight;
+    }
+    let expected_limits = new Array();
+    for (let i = 0; i < weights.length; i++) {
+      expected_limits.push(
+        JSBI.toNumber(
+          JSBI.divide(
+            JSBI.multiply(
+              JSBI.BigInt(constant.default_max_block_cpu_usage),
+              JSBI.BigInt(weights[i])
+            ),
+            JSBI.BigInt(total)
+          )
+        )
+      );
+    }
+    for (let i = 0; i < weights.length; i++) {
+      const account = i + 100 + "";
+      initialize_account(account);
+      set_account_limits(account, -1, -1, weights[i]);
+    }
+    process_account_limit_updates();
+
+    for (let i = 0; i < weights.length; i++) {
+      const account = i + 100 + "";
+      expect(get_account_cpu_limit(account).arl.available).toEqual(
+        expected_limits[i]
+      );
+    }
   });
 });
