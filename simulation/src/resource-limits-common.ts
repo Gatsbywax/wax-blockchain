@@ -26,23 +26,6 @@ let state: resource_limits_state_object;
 const resource_limits_db: resource_limits_object[] = [];
 const resource_usage_db: resource_usage_object[] = [];
 
-export function update_elastic_limit(
-  current_limit: number,
-  average_usage: number,
-  params: elastic_limit_parameters
-) {
-  let result = current_limit;
-  if (average_usage > params.target) {
-    result = result * params.contract_rate.d;
-  } else {
-    result = result * params.expand_rate.d;
-  }
-  return Math.min(
-    Math.max(result, params.max),
-    params.max * params.max_multiplier
-  );
-}
-
 export function initialize_database() {
   config = new resource_limits_config_object();
   state = new resource_limits_state_object(
@@ -78,7 +61,7 @@ export function update_account_usage(accounts: string[], time_slot: number) {
     const usage = resource_usage_db.find((x) => x.owner === a);
     usage?.net_usage.add(0, time_slot, config.account_net_usage_average_window);
     usage?.cpu_usage.add(0, time_slot, config.account_net_usage_average_window);
-    console.log("usage", usage);
+    // console.log("usage", usage);
   }
 }
 
@@ -90,17 +73,17 @@ export function add_transaction_usage(
 ) {
   for (let a of accounts) {
     const usage = resource_usage_db.find((x) => x.owner === a);
-
+    if (!usage) throw new Error(`usage account ${a} not exist`);
     let { ram_bytes: unused, net_weight, cpu_weight } = get_account_limits(a);
-    usage?.net_usage.add(
+    usage.net_usage.add(
       net_usage,
       time_slot,
       config.account_net_usage_average_window
     );
-    usage?.cpu_usage.add(
-      net_usage,
+    usage.cpu_usage.add(
+      cpu_usage,
       time_slot,
-      config.account_net_usage_average_window
+      config.account_cpu_usage_average_window
     );
 
     if (cpu_weight >= 0 && state.total_cpu_weight > 0) {
@@ -317,7 +300,7 @@ export function get_virtual_block_cpu_limit() {
   return state.virtual_cpu_limit;
 }
 
-function get_virtual_block_net_limit() {
+export function get_virtual_block_net_limit() {
   return state.virtual_net_limit;
 }
 

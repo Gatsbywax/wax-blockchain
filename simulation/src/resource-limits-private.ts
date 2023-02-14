@@ -6,12 +6,17 @@ import {
   resource_limit_exception,
 } from "./common";
 import * as constant from "./config";
+import JSBI from "jsbi";
 
 const Precision = constant.rate_limiting_precision;
 
-function integer_divide_ceil(num: number, den: number) {
-  // return num / den;
-  return Math.floor(num / den);
+function integer_divide_ceil(num: JSBI, den: JSBI) {
+  return JSBI.add(
+    JSBI.divide(num, den),
+    JSBI.greaterThan(JSBI.remainder(num, den), JSBI.BigInt(0))
+      ? JSBI.BigInt(1)
+      : JSBI.BigInt(0)
+  );
 }
 
 const max_raw_value = Number.MAX_SAFE_INTEGER / Precision;
@@ -24,8 +29,13 @@ export class Ratio {
     this.d = d;
   }
 
-  times(x: number) {
-    return x * integer_divide_ceil(this.n, this.d);
+  multiple(x: number) {
+    return JSBI.toNumber(
+      JSBI.divide(
+        JSBI.multiply(JSBI.BigInt(x), JSBI.BigInt(this.n)),
+        JSBI.BigInt(this.d)
+      )
+    );
   }
 
   equals(rhs: Ratio) {
@@ -122,7 +132,9 @@ export class exponential_moving_average_accumulator {
    * return the average value
    */
   average() {
-    return integer_divide_ceil(this.value_ex, Precision);
+    return JSBI.toNumber(
+      integer_divide_ceil(JSBI.BigInt(this.value_ex), JSBI.BigInt(Precision))
+    );
   }
 
   add(units: number, ordinal: number, window_size: number) {
@@ -137,9 +149,13 @@ export class exponential_moving_average_accumulator {
       rate_limiting_state_inconsistent,
       "Overflow in tracked usage when adding usage!"
     );
-    console.log("window_size", window_size);
-    let value_ex_contrib = integer_divide_ceil(units * Precision, window_size);
-    console.log("value_ex_contrib", value_ex_contrib);
+    let value_ex_contrib = JSBI.toNumber(
+      integer_divide_ceil(
+        JSBI.multiply(JSBI.BigInt(units), JSBI.BigInt(Precision)),
+        JSBI.BigInt(window_size)
+      )
+    );
+    // console.log("value_ex_contrib: ", value_ex_contrib)
     EOS_ASSERT(
       Number.MAX_SAFE_INTEGER - this.value_ex >= value_ex_contrib,
       rate_limiting_state_inconsistent,
@@ -154,9 +170,11 @@ export class exponential_moving_average_accumulator {
       );
       if (this.last_ordinal + window_size > ordinal) {
         const delta = ordinal - this.last_ordinal; // clearly 0 < delta < window_size
+        // console.log("delta: ", delta)
         const decay = make_ratio(window_size - delta, window_size);
-
-        this.value_ex = decay.times(this.value_ex);
+        // console.log("decay: ", decay)
+        this.value_ex = decay.multiple(this.value_ex);
+        // console.log("this.value_ex: ", this.value_ex)
       } else {
         this.value_ex = 0;
       }
@@ -356,13 +374,16 @@ export class resource_limits_state_object {
   }
 
   update_virtual_net_limit(cfg: resource_limits_config_object) {
-    this.virtual_cpu_limit = update_elastic_limit(
-      this.virtual_cpu_limit,
-      this.average_block_cpu_usage.average(),
-      cfg.cpu_limit_parameters
+    this.virtual_net_limit = update_elastic_limit(
+      this.virtual_net_limit,
+      this.average_block_net_usage.average(),
+      cfg.net_limit_parameters
     );
   }
   update_virtual_cpu_limit(cfg: resource_limits_config_object) {
+    // console.log("this.virtual_cpu_limit", this.virtual_cpu_limit)
+    // console.log("this.average_block_cpu_usage.average()", this.average_block_cpu_usage.average())
+    // console.log("cfg.cpu_limit_parameters", cfg.cpu_limit_parameters)
     this.virtual_cpu_limit = update_elastic_limit(
       this.virtual_cpu_limit,
       this.average_block_cpu_usage.average(),
@@ -383,11 +404,25 @@ export function update_elastic_limit(
   params: elastic_limit_parameters
 ) {
   let result = current_limit;
+  // console.log("average_usage", average_usage);
+  // console.log("params.target", params.target)
+  // console.log("params", params)
   if (average_usage > params.target) {
-    result = (result * params.contract_rate.n) / params.contract_rate.d;
+    result = JSBI.toNumber(
+      JSBI.divide(
+        JSBI.multiply(JSBI.BigInt(result), JSBI.BigInt(params.contract_rate.n)),
+        JSBI.BigInt(params.contract_rate.d)
+      )
+    );
   } else {
-    result = (result * params.expand_rate.n) / params.expand_rate.d;
+    result = JSBI.toNumber(
+      JSBI.divide(
+        JSBI.multiply(JSBI.BigInt(result), JSBI.BigInt(params.expand_rate.n)),
+        JSBI.BigInt(params.expand_rate.d)
+      )
+    );
   }
+  // console.log("update_elastic_limit",result)
   return Math.min(
     Math.max(result, params.max),
     params.max * params.max_multiplier
