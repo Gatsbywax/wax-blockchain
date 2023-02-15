@@ -30,7 +30,9 @@ export const MaxUint64 = JSBI.BigInt("0xffffffffffffffff");
 export function integer_divide_ceil(num: JSBI, den: JSBI) {
   return JSBI.add(
     JSBI.divide(num, den),
-    JSBI.remainder(num, den) > JSBI.BigInt(0) ? JSBI.BigInt(1) : JSBI.BigInt(0)
+    JSBI.greaterThan(JSBI.remainder(num, den), JSBI.BigInt(0))
+      ? JSBI.BigInt(1)
+      : JSBI.BigInt(0)
   );
 }
 

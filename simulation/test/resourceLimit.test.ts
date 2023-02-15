@@ -116,7 +116,7 @@ describe("resource_limits_test", () => {
       add_transaction_usage([account], 0, 0, iterations);
       process_block_usage(iterations++);
     }
-    // expect(iterations).toEqual(expected_relax_iterations);
+    expect(iterations).toEqual(expected_relax_iterations);
     expect(get_virtual_block_cpu_limit()).toEqual(desired_virtual_limit);
     // push maximum resources to go from idle back to congested as fast as possible
     while (
@@ -131,13 +131,16 @@ describe("resource_limits_test", () => {
       );
       process_block_usage(iterations++);
     }
-    // expect(iterations).toEqual(expected_relax_iterations + expected_contract_iterations);
+    expect(iterations).toEqual(
+      expected_relax_iterations + expected_contract_iterations
+    );
     expect(get_virtual_block_cpu_limit()).toEqual(
       constant.default_max_block_cpu_usage
     );
   });
 
   it("elastic_net_relax_contract", () => {
+    initialize_database();
     let desired_virtual_limit =
       constant.default_max_block_net_usage *
       constant.maximum_elastic_resource_multiplier;
@@ -185,7 +188,7 @@ describe("resource_limits_test", () => {
       );
       process_block_usage(iterations++ + parseInt(current_time_seconds));
     }
-    // expect(iterations).toEqual(expected_relax_iterations);
+    expect(iterations).toEqual(expected_relax_iterations);
     expect(get_virtual_block_net_limit()).toEqual(desired_virtual_limit);
     // push maximum resources to go from idle back to congested as fast as possible
     while (
@@ -200,7 +203,9 @@ describe("resource_limits_test", () => {
       );
       process_block_usage(iterations++ + parseInt(current_time_seconds));
     }
-    // expect(iterations).toEqual(expected_relax_iterations + expected_contract_iterations);
+    expect(iterations).toEqual(
+      expected_relax_iterations + expected_contract_iterations
+    );
     expect(get_virtual_block_net_limit()).toEqual(
       constant.default_max_block_net_usage
     );
@@ -208,12 +213,16 @@ describe("resource_limits_test", () => {
 });
 
 describe("weighted_capacity_cpu", () => {
+  beforeAll(() => {
+    initialize_database();
+  });
   it("weighted_capacity_cpu", () => {
     const weights: number[] = [234, 511, 672, 800, 1213];
     let total = 0;
     for (const weight of weights) {
       total += weight;
     }
+    console.log("total: ", total);
     let expected_limits = new Array();
     for (let i = 0; i < weights.length; i++) {
       expected_limits.push(
@@ -228,6 +237,7 @@ describe("weighted_capacity_cpu", () => {
         )
       );
     }
+    console.log("expected_limits: ", expected_limits);
     for (let i = 0; i < weights.length; i++) {
       const account = i + 100 + "";
       initialize_account(account);
@@ -237,9 +247,7 @@ describe("weighted_capacity_cpu", () => {
 
     for (let i = 0; i < weights.length; i++) {
       const account = i + 100 + "";
-      expect(get_account_cpu_limit(account).arl.available).toEqual(
-        expected_limits[i]
-      );
+      expect(get_account_cpu_limit(account).arl).toEqual(expected_limits[i]);
     }
   });
 });

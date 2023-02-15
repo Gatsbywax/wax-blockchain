@@ -212,7 +212,7 @@ export class resource_limits_object {
   ) {
     this.id = resource_limits_object.instanceId;
     this.owner = owner;
-    this.pending = false;
+    this.pending = pending;
 
     this.net_weight = net_weight;
     this.cpu_weight = cpu_weight;
@@ -381,9 +381,6 @@ export class resource_limits_state_object {
     );
   }
   update_virtual_cpu_limit(cfg: resource_limits_config_object) {
-    // console.log("this.virtual_cpu_limit", this.virtual_cpu_limit)
-    // console.log("this.average_block_cpu_usage.average()", this.average_block_cpu_usage.average())
-    // console.log("cfg.cpu_limit_parameters", cfg.cpu_limit_parameters)
     this.virtual_cpu_limit = update_elastic_limit(
       this.virtual_cpu_limit,
       this.average_block_cpu_usage.average(),
@@ -404,9 +401,6 @@ export function update_elastic_limit(
   params: elastic_limit_parameters
 ) {
   let result = current_limit;
-  // console.log("average_usage", average_usage);
-  // console.log("params.target", params.target)
-  // console.log("params", params)
   if (average_usage > params.target) {
     result = JSBI.toNumber(
       JSBI.divide(
@@ -422,7 +416,6 @@ export function update_elastic_limit(
       )
     );
   }
-  // console.log("update_elastic_limit",result)
   return Math.min(
     Math.max(result, params.max),
     params.max * params.max_multiplier
