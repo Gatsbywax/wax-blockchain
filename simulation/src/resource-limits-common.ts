@@ -29,8 +29,8 @@ const resource_usage_db: resource_usage_object[] = [];
 export function initialize_database() {
   config = new resource_limits_config_object();
   state = new resource_limits_state_object(
-    config.cpu_limit_parameters.max,
-    config.net_limit_parameters.max
+    config.net_limit_parameters.max,
+    config.cpu_limit_parameters.max
   );
 }
 
@@ -59,8 +59,9 @@ function set_block_parameters(
 export function update_account_usage(accounts: string[], time_slot: number) {
   for (let a of accounts) {
     const usage = resource_usage_db.find((x) => x.owner === a);
-    usage?.net_usage.add(0, time_slot, config.account_net_usage_average_window);
-    usage?.cpu_usage.add(0, time_slot, config.account_net_usage_average_window);
+    if (!usage) throw new Error(`usage account ${a} not exist`);
+    usage.net_usage.add(0, time_slot, config.account_net_usage_average_window);
+    usage.cpu_usage.add(0, time_slot, config.account_net_usage_average_window);
     // console.log("usage", usage);
   }
 }
@@ -94,7 +95,7 @@ export function add_transaction_usage(
       );
       let cpu_used_in_window = JSBI.divide(
         JSBI.multiply(
-          JSBI.BigInt(Number(usage?.cpu_usage.value_ex)),
+          JSBI.BigInt(Number(usage.cpu_usage.value_ex)),
           window_size
         ),
         JSBI.BigInt(constant.rate_limiting_precision)
@@ -123,7 +124,7 @@ export function add_transaction_usage(
       );
       let net_used_in_window = JSBI.divide(
         JSBI.multiply(
-          JSBI.BigInt(Number(usage?.net_usage.value_ex)),
+          JSBI.BigInt(Number(usage.net_usage.value_ex)),
           window_size
         ),
         JSBI.BigInt(constant.rate_limiting_precision)
@@ -188,14 +189,13 @@ export function set_account_limits(
     resource_limits_db.push(pending_limits);
 
     if (ram_bytes >= 0) {
-      decreased_limit = limits?.ram_bytes < 0 || ram_bytes < limits.ram_bytes;
+      decreased_limit = limits.ram_bytes < 0 || ram_bytes < limits.ram_bytes;
     }
   }
 
   pending_limits.ram_bytes = ram_bytes;
   pending_limits.net_weight = net_weight;
   pending_limits.cpu_weight = cpu_weight;
-
   return decreased_limit;
 }
 
@@ -223,7 +223,7 @@ export function process_account_limit_updates() {
       "ram_bytes"
     );
     state.total_ram_bytes = total_ram_bytes;
-    pending.ram_bytes = ram_bytes;
+    actual_entry.ram_bytes = ram_bytes;
     const { total: total_cpu_weight, value: cpu_weight } =
       update_state_and_value(
         state.total_cpu_weight,
@@ -231,8 +231,8 @@ export function process_account_limit_updates() {
         pending.cpu_weight,
         "cpu_weight"
       );
-    state.total_cpu_weight = cpu_weight;
-    pending.cpu_weight = cpu_weight;
+    state.total_cpu_weight = total_cpu_weight;
+    actual_entry.cpu_weight = cpu_weight;
     const { total: total_net_weight, value: net_weight } =
       update_state_and_value(
         state.total_net_weight,
@@ -241,7 +241,7 @@ export function process_account_limit_updates() {
         "net_weight"
       );
     state.total_net_weight = total_net_weight;
-    pending.net_weight = net_weight;
+    actual_entry.net_weight = net_weight;
   }
 }
 
@@ -262,8 +262,10 @@ function update_state_and_value(
 
   if (pending_value > 0) {
     EOS_ASSERT(
-      JSBI.subtract(MaxUint64, JSBI.BigInt(total)) >=
-        JSBI.BigInt(pending_value),
+      JSBI.greaterThanOrEqual(
+        JSBI.subtract(MaxUint64, JSBI.BigInt(total)),
+        JSBI.BigInt(pending_value)
+      ),
       rate_limiting_state_inconsistent,
       `overflow when applying new value to ${debug_which}`
     );
@@ -338,7 +340,6 @@ function get_account_cpu_limit_ex(
   }
 
   let window_size = JSBI.BigInt(config.account_cpu_usage_average_window);
-
   let virtual_cpu_capacity_in_window = window_size;
   if (greylist_limit < constant.maximum_elastic_resource_multiplier) {
     let greylisted_virtual_cpu_limit =
@@ -361,7 +362,6 @@ function get_account_cpu_limit_ex(
       JSBI.BigInt(state.virtual_cpu_limit)
     );
   }
-
   let user_weight = JSBI.BigInt(cpu_weight);
   let all_user_weight = JSBI.BigInt(state.total_cpu_weight);
 
@@ -370,18 +370,18 @@ function get_account_cpu_limit_ex(
     all_user_weight
   );
   let cpu_used_in_window = integer_divide_ceil(
-    JSBI.multiply(JSBI.BigInt(usage?.cpu_usage.value_ex), window_size),
+    JSBI.multiply(JSBI.BigInt(usage.cpu_usage.value_ex), window_size),
     JSBI.BigInt(constant.rate_limiting_precision)
   );
-
-  if (max_user_use_in_window <= cpu_used_in_window) arl.available = 0;
+  if (JSBI.lessThanOrEqual(max_user_use_in_window, cpu_used_in_window))
+    arl.available = 0;
   else
-    arl.available = Number(
+    arl.available = JSBI.toNumber(
       JSBI.subtract(max_user_use_in_window, cpu_used_in_window)
     );
 
-  arl.used = Number(cpu_used_in_window);
-  arl.max = Number(max_user_use_in_window);
+  arl.used = JSBI.toNumber(cpu_used_in_window);
+  arl.max = JSBI.toNumber(max_user_use_in_window);
   return [arl, greylisted];
 }
 
@@ -442,12 +442,12 @@ function get_account_net_limit_ex(
 
   if (max_user_use_in_window <= net_used_in_window) arl.available = 0;
   else
-    arl.available = Number(
+    arl.available = JSBI.toNumber(
       JSBI.subtract(max_user_use_in_window, net_used_in_window)
     );
 
-  arl.used = Number(net_used_in_window);
-  arl.max = Number(max_user_use_in_window);
+  arl.used = JSBI.toNumber(net_used_in_window);
+  arl.max = JSBI.toNumber(max_user_use_in_window);
   return [arl, greylisted];
 }
 
