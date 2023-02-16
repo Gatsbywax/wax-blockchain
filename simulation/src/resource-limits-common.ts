@@ -19,14 +19,18 @@ import {
   block_resource_exhausted,
   MaxUint64,
   integer_divide_ceil,
+  transaction_exception,
+  ram_usage_exceeded,
 } from "./common";
-let config: resource_limits_config_object;
-let state: resource_limits_state_object;
+var config: resource_limits_config_object;
+var state: resource_limits_state_object;
 
-const resource_limits_db: resource_limits_object[] = [];
-const resource_usage_db: resource_usage_object[] = [];
+var resource_limits_db: resource_limits_object[] = [];
+var resource_usage_db: resource_usage_object[] = [];
 
 export function initialize_database() {
+  resource_limits_db = [];
+  resource_usage_db = [];
   config = new resource_limits_config_object();
   state = new resource_limits_state_object(
     config.net_limit_parameters.max,
@@ -62,7 +66,6 @@ export function update_account_usage(accounts: string[], time_slot: number) {
     if (!usage) throw new Error(`usage account ${a} not exist`);
     usage.net_usage.add(0, time_slot, config.account_net_usage_average_window);
     usage.cpu_usage.add(0, time_slot, config.account_net_usage_average_window);
-    // console.log("usage", usage);
   }
 }
 
@@ -76,15 +79,15 @@ export function add_transaction_usage(
     const usage = resource_usage_db.find((x) => x.owner === a);
     if (!usage) throw new Error(`usage account ${a} not exist`);
     let { ram_bytes: unused, net_weight, cpu_weight } = get_account_limits(a);
-    usage.net_usage.add(
-      net_usage,
-      time_slot,
-      config.account_net_usage_average_window
-    );
     usage.cpu_usage.add(
       cpu_usage,
       time_slot,
       config.account_cpu_usage_average_window
+    );
+    usage.net_usage.add(
+      net_usage,
+      time_slot,
+      config.account_net_usage_average_window
     );
 
     if (cpu_weight >= 0 && state.total_cpu_weight > 0) {
@@ -108,9 +111,11 @@ export function add_transaction_usage(
         JSBI.multiply(virtual_network_capacity_in_window, user_weight),
         all_user_weight
       );
-
+      // console.log(
+      //   `cpu_used_in_window: ${cpu_used_in_window}, max_user_use_in_window: ${max_user_use_in_window}`
+      // );
       EOS_ASSERT(
-        cpu_used_in_window <= max_user_use_in_window,
+        JSBI.lessThanOrEqual(cpu_used_in_window, max_user_use_in_window),
         tx_cpu_usage_exceeded,
         "authorizing account '${n}' has insufficient cpu resources for this transaction"
       );
@@ -161,6 +166,40 @@ export function add_transaction_usage(
   );
 }
 
+export function add_pending_ram_usage(account: String, ram_delta: number) {
+  if (ram_delta == 0) {
+    return;
+  }
+  const usage = resource_usage_db.find((x) => x.owner === account);
+  if (!usage) throw new Error(`usage account ${a} not exist`);
+  EOS_ASSERT(
+    ram_delta <= 0 || JSBI.toNumber(MaxUint64) - usage.ram_usage >= ram_delta,
+    transaction_exception,
+    "Ram usage delta would overflow UINT64_MAX"
+  );
+  EOS_ASSERT(
+    ram_delta >= 0 || usage.ram_usage >= -ram_delta,
+    transaction_exception,
+    "Ram usage delta would underflow UINT64_MAX"
+  );
+
+  usage.ram_usage += ram_delta;
+}
+
+export function verify_account_ram_usage(account: String) {
+  // let ram_bytes: number; let net_weight: number; let cpu_weight: number;
+  let { ram_bytes, net_weight, cpu_weight } = get_account_limits(account);
+  const usage = resource_usage_db.find((x) => x.owner === account);
+  if (!usage) throw new Error(`usage account ${account} not exist`);
+
+  if (ram_bytes >= 0) {
+    EOS_ASSERT(
+      usage.ram_usage <= ram_bytes,
+      ram_usage_exceeded,
+      `account ${account} has insufficient ram; needs ${usage.ram_usage} bytes has ${ram_bytes} bytes`
+    );
+  }
+}
 export function set_account_limits(
   account: String,
   ram_bytes: number,
@@ -262,10 +301,8 @@ function update_state_and_value(
 
   if (pending_value > 0) {
     EOS_ASSERT(
-      JSBI.greaterThanOrEqual(
-        JSBI.subtract(MaxUint64, JSBI.BigInt(total)),
-        JSBI.BigInt(pending_value)
-      ),
+      JSBI.toNumber(JSBI.subtract(MaxUint64, JSBI.BigInt(total))) >=
+        pending_value,
       rate_limiting_state_inconsistent,
       `overflow when applying new value to ${debug_which}`
     );

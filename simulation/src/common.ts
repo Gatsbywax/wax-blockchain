@@ -43,3 +43,4 @@ export const tx_cpu_usage_exceeded = "tx_cpu_usage_exceeded";
 export const transaction_exception = "transaction_exception";
 export const tx_net_usage_exceeded = "tx_net_usage_exceeded";
 export const block_resource_exhausted = "block_resource_exhausted";
+export const ram_usage_exceeded = "ram_usage_exceeded";
