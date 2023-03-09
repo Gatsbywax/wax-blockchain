@@ -1,8 +1,8 @@
 # Leap
-Leap is a C++ implementation of the [Antelope](https://github.com/worldwide-asset-exchange) protocol. It contains blockchain node software and supporting tools for developers and node operators.
+Leap is a C++ implementation of the [Antelope](https://github.com/AntelopeIO) protocol. It contains blockchain node software and supporting tools for developers and node operators.
 
 ## Branches
-The `main` branch is the development branch; do not use it for production. Refer to the [release page](https://github.com/worldwide-asset-exchange/leap/releases) for current information on releases, pre-releases, and obsolete releases, as well as the corresponding tags for those releases.
+The `main` branch is the development branch; do not use it for production. Refer to the [release page](https://github.com/worldwide-asset-exchange/wax-blockchain/releases) for current information on releases, pre-releases, and obsolete releases, as well as the corresponding tags for those releases.
 
 ## Supported Operating Systems
 We currently support the following operating systems.
@@ -19,7 +19,7 @@ cat /etc/upstream-release/lsb-release
 Your best bet is to follow the instructions for your Ubuntu base, but we make no guarantees.
 
 ## Binary Installation
-This is the fastest way to get started. From the [latest release](https://github.com/worldwide-asset-exchange/leap/releases/latest) page, download a binary for one of our [supported operating systems](#supported-operating-systems), or visit the [release tags](https://github.com/worldwide-asset-exchange/leap/releases) page to download a binary for a specific version of Leap.
+This is the fastest way to get started. From the [latest release](https://github.com/worldwide-asset-exchange/wax-blockchain/releases/latest) page, download a binary for one of our [supported operating systems](#supported-operating-systems), or visit the [release tags](https://github.com/worldwide-asset-exchange/wax-blockchain/releases) page to download a binary for a specific version of Leap.
 
 Once you have a `*.deb` file downloaded for your version of Ubuntu, you can install it as follows:
 ```bash
