@@ -65,23 +65,23 @@ cd ~/Downloads
 ```
 Clone Leap using either HTTPS...
 ```bash
-git clone --recursive https://github.com/worldwide-asset-exchange/leap.git
+git clone --recursive https://github.com/worldwide-asset-exchange/wax-blockchain.git
 ```
 ...or SSH:
 ```bash
-git clone --recursive git@github.com:worldwide-asset-exchange/leap.git
+git clone --recursive git@github.com:worldwide-asset-exchange/wax-blockchain.git
 ```
 
 > ℹ️ **HTTPS vs. SSH Clone** ℹ️  
-Both an HTTPS or SSH git clone will yield the same result - a folder named `leap` containing our source code. It doesn't matter which type you use.
+Both an HTTPS or SSH git clone will yield the same result - a folder named `wax-blockchain` containing our source code. It doesn't matter which type you use.
 
 Navigate into that folder:
 ```bash
-cd leap
+cd wax-blockchain
 ```
 
 ### Step 2 - Checkout Release Tag or Branch
-Choose which [release](https://github.com/worldwide-asset-exchange/leap/releases) or [branch](#branches) you would like to build, then check it out. If you are not sure, use the [latest release](https://github.com/worldwide-asset-exchange/leap/releases/latest). For example, if you want to build release 3.1.2 then you would check it out using its tag, `v3.1.2`. In the example below, replace `v0.0.0` with your selected release tag accordingly:
+Choose which [release](https://github.com/worldwide-asset-exchange/wax-blockchain/releases) or [branch](#branches) you would like to build, then check it out. If you are not sure, use the [latest release](https://github.com/worldwide-asset-exchange/wax-blockchain/releases/latest). For example, if you want to build release 3.1.2 then you would check it out using its tag, `v3.1.2`. In the example below, replace `v0.0.0` with your selected release tag accordingly:
 ```bash
 git fetch --all --tags
 git checkout v0.0.0
@@ -106,7 +106,7 @@ When building C/C++ software, often the build is performed in parallel via a com
 If you are in an Ubuntu docker container, omit `sudo` from all commands because you run as `root` by default. Most other docker containers also exclude `sudo`, especially Debian-family containers. If your shell prompt is a hash tag (`#`), omit `sudo`.
 
 #### Pinned Build
-Make sure you are in the root of the `leap` repo, then run the `install_depts.sh` script to install dependencies:
+Make sure you are in the root of the `wax-blockchain` repo, then run the `install_depts.sh` script to install dependencies:
 ```bash
 sudo scripts/install_deps.sh
 ```
@@ -116,7 +116,7 @@ Next, run the pinned build script. You have to give it three arguments, in the f
   - A build folder, where the binaries you need to install will be built to.
   - The number of jobs or CPU cores/threads to use (note the [jobs flag](#step-3---build) warning above).
 
-The following command runs the `pinned_build.sh` script, specifies a `deps` and `build` folder in the root of the Leap repo for the first two arguments, then builds the packages using all of your computer's CPU threads (Note: you don't need `sudo` for this command):
+The following command runs the `pinned_build.sh` script, specifies a `deps` and `build` folder in the root of the wax-blockchain repo for the first two arguments, then builds the packages using all of your computer's CPU threads (Note: you don't need `sudo` for this command):
 ```bash
 scripts/pinned_build.sh deps build "$(nproc)"
 ```
