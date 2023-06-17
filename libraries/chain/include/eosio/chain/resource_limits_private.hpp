@@ -324,12 +324,62 @@ namespace eosio { namespace chain { namespace resource_limits {
       >
    >;
 
+   /**
+   * This object tracks the fee resource configuration.
+   */
+   class resource_fees_config_object : public chainbase::object<resource_fees_config_object_type, resource_fees_config_object> {
+      OBJECT_CTOR(resource_fees_config_object);
+      id_type id;
+
+      uint64_t cpu_fee_scaler = config::default_cpu_fee_scaler;
+      uint64_t free_block_cpu_threshold = config::default_free_block_cpu_threshold;
+      uint64_t net_fee_scaler = config::default_net_fee_scaler;
+      uint64_t free_block_net_threshold = config::default_free_block_net_threshold;
+   };
+   using resource_fees_config_index = chainbase::shared_multi_index_container<
+      resource_fees_config_object,
+      indexed_by<
+         ordered_unique<tag<by_id>, member<resource_fees_config_object, resource_fees_config_object::id_type, &resource_fees_config_object::id>>
+      >
+   >;
+
+   /**
+    * This object
+    * tracks the fee resource of that account. 
+    * Note: 
+    * - Setting max_fee_per_tx to -1 indicates an unlimited fee per transaction.
+    * - Setting max_fee to -1 indicates an unlimited fee by account.
+    */
+   struct resource_fees_object : public chainbase::object<resource_fees_object_type, resource_fees_object> {
+
+      OBJECT_CTOR(resource_fees_object)
+
+      id_type id;
+      account_name owner; //< owner should not be changed within a chainbase modifier lambda
+      int64_t max_fee_per_tx = -1;
+      int64_t max_fee = 0;
+      int64_t net_weight = 0;
+      int64_t cpu_weight = 0;
+      int64_t net_consumed_weight = 0;
+      int64_t cpu_consumed_weight = 0;
+
+   };
+
+   using resource_fees_index = chainbase::shared_multi_index_container<
+      resource_fees_object,
+      indexed_by<
+         ordered_unique<tag<by_id>, member<resource_fees_object, resource_fees_object::id_type, &resource_fees_object::id>>,
+         ordered_unique<tag<by_owner>, member<resource_fees_object, account_name, &resource_fees_object::owner> >
+      >
+   >;
 } } } /// eosio::chain::resource_limits
 
 CHAINBASE_SET_INDEX_TYPE(eosio::chain::resource_limits::resource_limits_object,        eosio::chain::resource_limits::resource_limits_index)
 CHAINBASE_SET_INDEX_TYPE(eosio::chain::resource_limits::resource_usage_object,         eosio::chain::resource_limits::resource_usage_index)
 CHAINBASE_SET_INDEX_TYPE(eosio::chain::resource_limits::resource_limits_config_object, eosio::chain::resource_limits::resource_limits_config_index)
 CHAINBASE_SET_INDEX_TYPE(eosio::chain::resource_limits::resource_limits_state_object,  eosio::chain::resource_limits::resource_limits_state_index)
+CHAINBASE_SET_INDEX_TYPE(eosio::chain::resource_limits::resource_fees_object,          eosio::chain::resource_limits::resource_fees_index)
+CHAINBASE_SET_INDEX_TYPE(eosio::chain::resource_limits::resource_fees_config_object,   eosio::chain::resource_limits::resource_fees_config_index)
 
 FC_REFLECT(eosio::chain::resource_limits::usage_accumulator, (last_ordinal)(value_ex)(consumed))
 
@@ -338,3 +388,5 @@ FC_REFLECT(eosio::chain::resource_limits::resource_limits_object, (owner)(net_we
 FC_REFLECT(eosio::chain::resource_limits::resource_usage_object,  (owner)(net_usage)(cpu_usage)(ram_usage))
 FC_REFLECT(eosio::chain::resource_limits::resource_limits_config_object, (cpu_limit_parameters)(net_limit_parameters)(account_cpu_usage_average_window)(account_net_usage_average_window))
 FC_REFLECT(eosio::chain::resource_limits::resource_limits_state_object, (average_block_net_usage)(average_block_cpu_usage)(pending_net_usage)(pending_cpu_usage)(total_net_weight)(total_cpu_weight)(total_ram_bytes)(virtual_net_limit)(virtual_cpu_limit))
+FC_REFLECT(eosio::chain::resource_limits::resource_fees_object, (owner)(max_fee_per_tx)(max_fee)(net_weight)(cpu_weight)(net_consumed_weight)(cpu_consumed_weight))
+FC_REFLECT(eosio::chain::resource_limits::resource_fees_config_object, (cpu_fee_scaler)(free_block_cpu_threshold)(net_fee_scaler)(free_block_net_threshold))

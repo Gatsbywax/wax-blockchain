@@ -306,7 +306,7 @@ struct controller_impl {
         cfg.state_size, false, cfg.db_map_mode ),
     blog( cfg.blocks_dir, cfg.blog ),
     fork_db( cfg.blocks_dir / config::reversible_blocks_dir_name ),
-    resource_limits( db, [&s](bool is_trx_transient) { return s.get_deep_mind_logger(is_trx_transient); }),
+    resource_limits( s, db),
     authorization( s, db ),
     protocol_features( std::move(pfs), [&s](bool is_trx_transient) { return s.get_deep_mind_logger(is_trx_transient); } ),
     conf( cfg ),
@@ -338,6 +338,7 @@ struct controller_impl {
       set_activation_handler<builtin_protocol_feature_t::get_code_hash>();
       set_activation_handler<builtin_protocol_feature_t::get_block_num>();
       set_activation_handler<builtin_protocol_feature_t::crypto_primitives>();
+      set_activation_handler<builtin_protocol_feature_t::allow_charging_fee>();
 
       self.irreversible_block.connect([this](const block_state_ptr& bsp) {
          // producer_plugin has already asserted irreversible_block signal is
@@ -1385,7 +1386,15 @@ struct controller_impl {
                                         transaction_receipt::executed,
                                         trx_context.billed_cpu_time_us,
                                         trace->net_usage );
+         if( self.is_builtin_activated( builtin_protocol_feature_t::allow_charging_fee ) ) {
+            if(trx_context.net_usage_fee >= 0){
+               trace->net_fee = trx_context.net_usage_fee;
+            }
 
+            if(trx_context.cpu_usage_fee >= 0){
+               trace->cpu_fee = trx_context.cpu_usage_fee;
+            }
+         }
          fc::move_append( std::get<building_block>(pending->_block_stage)._action_receipt_digests,
                           std::move(trx_context.executed_action_receipt_digests) );
 
@@ -1613,6 +1622,16 @@ struct controller_impl {
                r.cpu_usage_us = trx_context.billed_cpu_time_us;
                r.net_usage_words = trace->net_usage / 8;
                trace->receipt = r;
+            }
+
+            if( self.is_builtin_activated( builtin_protocol_feature_t::allow_charging_fee ) ) {
+               if(trx_context.net_usage_fee >= 0){
+                  trace->net_fee = trx_context.net_usage_fee;
+               }
+
+               if(trx_context.cpu_usage_fee >= 0){
+                  trace->cpu_fee = trx_context.cpu_usage_fee;
+               }
             }
 
             if ( !trx->is_read_only() ) {
@@ -3834,6 +3853,16 @@ void controller_impl::on_activation<builtin_protocol_feature_t::crypto_primitive
    } );
 }
 
+template<>
+void controller_impl::on_activation<builtin_protocol_feature_t::allow_charging_fee>() {
+   db.modify( db.get<protocol_state_object>(), [&]( auto& ps ) {
+      add_intrinsic_to_whitelist( ps.whitelisted_intrinsics, "set_fees_parameters" );
+      add_intrinsic_to_whitelist( ps.whitelisted_intrinsics, "config_account_fees" );
+      add_intrinsic_to_whitelist( ps.whitelisted_intrinsics, "set_account_resource_fees" );
+      add_intrinsic_to_whitelist( ps.whitelisted_intrinsics, "get_account_consumed_fees" );
+   } );
+   resource_limits.add_fees_config_db();
+}
 /// End of protocol feature activation handlers
 
 } } /// eosio::chain

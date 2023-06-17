@@ -118,6 +118,16 @@ namespace {
                      (std::move(common_mvo))
                );
             }
+            else if constexpr(std::is_same_v<TransactionTrace, transaction_trace_v4>){
+               result.emplace_back(
+                  fc::mutable_variant_object()
+                     ("id", t.id.str())
+                     ("net_fee", t.net_fee)
+                     ("cpu_fee", t.cpu_fee)
+                     ("actions", process_actions<action_trace_v1>(std::get<std::vector<action_trace_v1>>(t.actions), data_handler, yield))
+                     (std::move(common_mvo))
+               );
+            }
          }
       }
 

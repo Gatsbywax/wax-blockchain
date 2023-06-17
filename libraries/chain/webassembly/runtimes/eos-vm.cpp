@@ -348,6 +348,10 @@ REGISTER_LEGACY_HOST_FUNCTION(get_blockchain_parameters_packed, privileged_check
 REGISTER_LEGACY_HOST_FUNCTION(set_blockchain_parameters_packed, privileged_check);
 REGISTER_HOST_FUNCTION(is_privileged, privileged_check);
 REGISTER_HOST_FUNCTION(set_privileged, privileged_check);
+REGISTER_HOST_FUNCTION(set_fees_parameters, privileged_check);
+REGISTER_HOST_FUNCTION(config_account_fees, privileged_check);
+REGISTER_HOST_FUNCTION(set_account_resource_fees, privileged_check);
+REGISTER_LEGACY_HOST_FUNCTION(get_account_consumed_fees, privileged_check);
 
 // softfloat api
 REGISTER_INJECTED_HOST_FUNCTION(_eosio_f32_add);

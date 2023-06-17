@@ -203,7 +203,7 @@ BOOST_AUTO_TEST_SUITE(block_extraction)
          }
       };
 
-      const transaction_trace_v3 expected_transaction_trace {
+      const transaction_trace_v4 expected_transaction_trace {
          {
             ptrx1.id(),
             expected_action_traces,
@@ -211,7 +211,9 @@ BOOST_AUTO_TEST_SUITE(block_extraction)
             bsp1->block->transactions[0].cpu_usage_us,
             bsp1->block->transactions[0].net_usage_words,
             ptrx1.get_signatures(),
-            make_trx_header(ptrx1.get_transaction())
+            make_trx_header(ptrx1.get_transaction()),
+            1,
+            chain::block_timestamp_type(1)
          }
       };
 
@@ -224,7 +226,7 @@ BOOST_AUTO_TEST_SUITE(block_extraction)
          bsp1->block->transaction_mroot,
          bsp1->block->action_mroot,
          bsp1->block->schedule_version,
-         std::vector<transaction_trace_v3> {
+         std::vector<transaction_trace_v4> {
             expected_transaction_trace
          }
       };
@@ -301,7 +303,7 @@ BOOST_AUTO_TEST_SUITE(block_extraction)
          }
       };
 
-      const std::vector<transaction_trace_v3> expected_transaction_traces {
+      const std::vector<transaction_trace_v4> expected_transaction_traces {
          {
             {
                ptrx1.id(),
@@ -310,7 +312,9 @@ BOOST_AUTO_TEST_SUITE(block_extraction)
                bsp1->block->transactions[0].cpu_usage_us,
                bsp1->block->transactions[0].net_usage_words,
                ptrx1.get_signatures(),
-               make_trx_header(ptrx1.get_transaction())
+               make_trx_header(ptrx1.get_transaction()),
+               1,
+               chain::block_timestamp_type(1)
             }
          },
          {
@@ -321,7 +325,9 @@ BOOST_AUTO_TEST_SUITE(block_extraction)
                bsp1->block->transactions[1].cpu_usage_us,
                bsp1->block->transactions[1].net_usage_words,
                ptrx2.get_signatures(),
-               make_trx_header(ptrx2.get_transaction())
+               make_trx_header(ptrx2.get_transaction()),
+               1,
+               chain::block_timestamp_type(1)
             }
          },
          {
@@ -332,7 +338,9 @@ BOOST_AUTO_TEST_SUITE(block_extraction)
                bsp1->block->transactions[2].cpu_usage_us,
                bsp1->block->transactions[2].net_usage_words,
                ptrx3.get_signatures(),
-               make_trx_header(ptrx3.get_transaction())
+               make_trx_header(ptrx3.get_transaction()),
+               1,
+               chain::block_timestamp_type(1)
             }
          }
       };
@@ -389,7 +397,7 @@ BOOST_AUTO_TEST_SUITE(block_extraction)
          }
       };
 
-      const std::vector<transaction_trace_v3> expected_transaction_traces {
+      const std::vector<transaction_trace_v4> expected_transaction_traces {
          {
             {
                transfer_trx.id(), // transfer_trx.id() because that is the trx id known to the user
@@ -398,7 +406,9 @@ BOOST_AUTO_TEST_SUITE(block_extraction)
                bsp1->block->transactions[0].cpu_usage_us,
                bsp1->block->transactions[0].net_usage_words,
                transfer_trx.get_signatures(),
-               make_trx_header(transfer_trx.get_transaction())
+               make_trx_header(transfer_trx.get_transaction()),
+               1,
+               chain::block_timestamp_type(1)    
             }
          }
       };

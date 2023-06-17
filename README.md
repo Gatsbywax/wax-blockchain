@@ -251,7 +251,7 @@ Alternatively, use the prebuilt docker image to get up and running with develomp
 1. Run Parallelizable Tests: `make test`
 1. Run WASM Spec test only : `make wasm-test`
 1. Run Serial Spec test only : `make serial-test`
-1. Run long-running Spec test only : `make long-test`
+1. Run long-running Spec test only : `make long-test
 
 ### Step 5 - Install
 Once you have [built](#step-3---build-the-source-code) Leap and [tested](#step-4---test) your build, you can install Leap on your system. Don't forget to omit `sudo` if you are running in a docker container.

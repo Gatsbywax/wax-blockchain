@@ -1,0 +1,76 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.2",
+    "types": [],
+    "structs": [
+        {
+            "name": "configfees",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "getfees",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account",
+                    "type": "name"
+                },
+                {
+                    "name": "expected_net_consumed_weight",
+                    "type": "int64"
+                },
+                {
+                    "name": "expected_cpu_consumed_weight",
+                    "type": "int64"
+                }
+            ]
+        },
+        {
+            "name": "setfees",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "setparams",
+            "base": "",
+            "fields": []
+        }
+    ],
+    "actions": [
+        {
+            "name": "configfees",
+            "type": "configfees",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "getfees",
+            "type": "getfees",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setfees",
+            "type": "setfees",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setparams",
+            "type": "setparams",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [],
+    "ricardian_clauses": [],
+    "variants": [],
+    "action_results": []
+}

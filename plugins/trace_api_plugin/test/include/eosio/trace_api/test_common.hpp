@@ -181,6 +181,27 @@ namespace eosio::trace_api {
          lhs.trx_header.delay_sec == rhs.trx_header.delay_sec ;
    }
 
+   bool operator==(const transaction_trace_v4& lhs,  const transaction_trace_v4& rhs) {
+      return
+         lhs.id == rhs.id &&
+         lhs.actions == rhs.actions &&
+         lhs.status == rhs.status &&
+         lhs.cpu_usage_us == rhs.cpu_usage_us &&
+         lhs.net_usage_words == rhs.net_usage_words &&
+         lhs.signatures == rhs.signatures &&
+         lhs.trx_header.expiration == rhs.trx_header.expiration &&
+         lhs.trx_header.ref_block_num == rhs.trx_header.ref_block_num &&
+         lhs.trx_header.ref_block_prefix == rhs.trx_header.ref_block_prefix &&
+         lhs.trx_header.max_net_usage_words == rhs.trx_header.max_net_usage_words &&
+         lhs.trx_header.max_cpu_usage_ms == rhs.trx_header.max_cpu_usage_ms &&
+         lhs.trx_header.delay_sec == rhs.trx_header.delay_sec &&
+         lhs.block_num == rhs.block_num &&
+         lhs.block_time == rhs.block_time &&
+         lhs.producer_block_id == rhs.producer_block_id &&
+         lhs.net_fee == rhs.net_fee &&
+         lhs.cpu_fee == rhs.cpu_fee;
+   }
+   
    bool operator==(const block_trace_v0 &lhs, const block_trace_v0 &rhs) {
       return
          lhs.id == rhs.id &&

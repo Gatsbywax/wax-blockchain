@@ -22,6 +22,8 @@ namespace resource_limits {
    class resource_limits_state_object;
    struct resource_limits_object;
    struct resource_usage_object;
+   class resource_fees_config_object;
+   struct resource_fees_object;
 }
 
 #define RAM_EVENT_ID( FORMAT, ... ) \
@@ -81,9 +83,13 @@ public:
    void on_db_update_i64(const table_id_object& tid, const key_value_object& kvo, account_name payer, const char* buffer, std::size_t buffer_size);
    void on_db_remove_i64(const table_id_object& tid, const key_value_object& kvo);
    void on_init_resource_limits(const resource_limits::resource_limits_config_object& config, const resource_limits::resource_limits_state_object& state);
+   void on_init_resource_fees_config(const resource_limits::resource_fees_config_object& fees_config);
    void on_update_resource_limits_config(const resource_limits::resource_limits_config_object& config);
    void on_update_resource_limits_state(const resource_limits::resource_limits_state_object& state);
+   void on_update_resource_fees_config(const resource_limits::resource_fees_config_object& fees_config);
    void on_newaccount_resource_limits(const resource_limits::resource_limits_object& limits, const resource_limits::resource_usage_object& usage);
+   void on_init_account_fees_limits(const resource_limits::resource_fees_object& fees_limits);
+   void on_update_account_fees_limits(const resource_limits::resource_fees_object& fees_limits);   
    void on_update_account_usage(const resource_limits::resource_usage_object& usage);
    void on_set_account_limits(const resource_limits::resource_limits_object& limits);
    // The trace is consumed by the next ram_event or ram_correction

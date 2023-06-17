@@ -501,6 +501,33 @@ operator<<(datastream<ST>&                                                      
 }
 
 template <typename ST>
+datastream<ST>&
+operator<<(datastream<ST>&                                                                            ds,
+           const history_serial_wrapper<eosio::chain::resource_limits::resource_fees_object>& obj) {
+   fc::raw::pack(ds, fc::unsigned_int(0));
+   fc::raw::pack(ds, as_type<uint64_t>(obj.obj.owner.to_uint64_t()));
+   fc::raw::pack(ds, as_type<int64_t>(obj.obj.max_fee_per_tx));
+   fc::raw::pack(ds, as_type<int64_t>(obj.obj.max_fee));
+   fc::raw::pack(ds, as_type<int64_t>(obj.obj.net_weight));
+   fc::raw::pack(ds, as_type<int64_t>(obj.obj.cpu_weight));
+   fc::raw::pack(ds, as_type<int64_t>(obj.obj.net_consumed_weight));
+   fc::raw::pack(ds, as_type<int64_t>(obj.obj.cpu_consumed_weight));
+   return ds;
+}
+
+template <typename ST>
+datastream<ST>&
+operator<<(datastream<ST>&                                                                            ds,
+           const history_serial_wrapper<eosio::chain::resource_limits::resource_fees_config_object>& obj) {
+   fc::raw::pack(ds, fc::unsigned_int(0));
+   fc::raw::pack(ds, as_type<uint64_t>(obj.obj.cpu_fee_scaler));
+   fc::raw::pack(ds, as_type<uint64_t>(obj.obj.free_block_cpu_threshold));
+   fc::raw::pack(ds, as_type<uint64_t>(obj.obj.net_fee_scaler));
+   fc::raw::pack(ds, as_type<uint64_t>(obj.obj.free_block_net_threshold));
+   return ds;
+}
+
+template <typename ST>
 datastream<ST>& operator<<(datastream<ST>&                                                     ds,
                            const history_serial_wrapper<eosio::chain::resource_limits::ratio>& obj) {
    fc::raw::pack(ds, fc::unsigned_int(0));
@@ -663,6 +690,13 @@ datastream<ST>& operator<<(
    fc::raw::pack(ds, as_type<std::optional<std::string>>(e));
    fc::raw::pack(ds, as_type<std::optional<uint64_t>>(debug_mode ? trace.error_code : cap_error_code(trace.error_code)));
 
+   if (trace.net_fee) {
+      fc::raw::pack(ds, as_type<std::optional<int64_t>>(trace.net_fee));
+   }
+   if (trace.cpu_fee) {
+      fc::raw::pack(ds, as_type<std::optional<int64_t>>(trace.cpu_fee));
+   }
+   
    fc::raw::pack(ds, bool(trace.failed_dtrx_trace));
    if (trace.failed_dtrx_trace) {
       uint8_t stat = eosio::chain::transaction_receipt_header::hard_fail;

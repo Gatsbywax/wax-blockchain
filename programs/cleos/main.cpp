@@ -2702,6 +2702,28 @@ void get_account( const string& accountName, const string& coresym, bool json_fo
                    << "balance:" << std::right << std::setw(18) << rex_balance << std::endl;
          std::cout << indent << std::left << std::setw(11)
                    << "staked:" << std::right << std::setw(18) << vote_stake << std::endl;
+      }
+
+      if(res.total_resources.is_object() && res.net_limit.max != -1){
+         auto net_total = to_asset(res.total_resources.get_object()["net_weight"].as_string());
+         auto core_symbol = net_total.get_symbol();
+
+         std::cout << "account fee settings:" << std::endl;
+         auto to_pretty_max_tx_fee =  res.max_fee_per_tx == -1 ? "no limit" : asset( res.max_fee_per_tx, core_symbol ).to_string();
+         auto to_pretty_max_fee =  res.max_fee == -1 ? "no limit" : asset( res.max_fee, core_symbol ).to_string();
+         std::cout << std::fixed << setprecision(3);
+         std::cout << indent << std::left << std::setw(11) << "tx limit:"        << std::right << std::setw(18) << to_pretty_max_tx_fee << "\n";
+         std::cout << indent << std::left << std::setw(11) << "account limit:"   << std::right << std::setw(18) << to_pretty_max_fee << "\n";
+         std::cout << std::endl;
+
+         std::cout << "pending fees:" << std::endl;
+         auto pending_net_asset = asset( res.pending_net_weight, core_symbol );
+         auto pending_cpu_asset = asset( res.pending_cpu_weight, core_symbol );
+         std::cout << std::fixed << setprecision(3);
+         std::cout << indent << std::left << std::setw(11)
+                     << "pending net fee:" << std::right << std::setw(18) << pending_net_asset << std::endl;
+         std::cout << indent << std::left << std::setw(11)
+                     << "pending cpu fee:" << std::right << std::setw(18) << pending_cpu_asset << std::endl;
          std::cout << std::endl;
       }
 

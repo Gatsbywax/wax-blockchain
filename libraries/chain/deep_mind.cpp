@@ -316,6 +316,12 @@ namespace eosio::chain {
          ("data", state)
       );
    }
+   void deep_mind_handler::on_init_resource_fees_config(const resource_limits::resource_fees_config_object& fees_config)
+   {
+      fc_dlog(_logger, "RLIMIT_OP FEES_CONFIG INS ${data}",
+         ("data", fees_config)
+      );
+   }
    void deep_mind_handler::on_update_resource_limits_config(const resource_limits::resource_limits_config_object& config)
    {
       fc_dlog(_logger, "RLIMIT_OP CONFIG UPD ${data}",
@@ -328,6 +334,12 @@ namespace eosio::chain {
          ("data", state)
       );
    }
+   void deep_mind_handler::on_update_resource_fees_config(const resource_limits::resource_fees_config_object& fees_config)
+   {
+      fc_dlog(_logger, "RLIMIT_OP FEES_CONFIG UPD ${data}",
+         ("data", fees_config)
+      );
+   }
    void deep_mind_handler::on_newaccount_resource_limits(const resource_limits::resource_limits_object& limits, const resource_limits::resource_usage_object& usage)
    {
       fc_dlog(_logger, "RLIMIT_OP ACCOUNT_LIMITS INS ${data}",
@@ -335,6 +347,18 @@ namespace eosio::chain {
       );
       fc_dlog(_logger, "RLIMIT_OP ACCOUNT_USAGE INS ${data}",
          ("data", usage)
+      );
+   }
+   void deep_mind_handler::on_init_account_fees_limits(const resource_limits::resource_fees_object& fees_limits)
+   {
+      fc_dlog(_logger, "RLIMIT_OP ACCOUNT_FEES_LIMITS INS ${data}",
+         ("data", fees_limits)
+      );
+   }
+   void deep_mind_handler::on_update_account_fees_limits(const resource_limits::resource_fees_object& fees_limits)
+   {
+      fc_dlog(_logger, "RLIMIT_OP ACCOUNT_FEES_LIMITS UPD ${data}",
+         ("data", fees_limits)
       );
    }
    void deep_mind_handler::on_update_account_usage(const resource_limits::resource_usage_object& usage)

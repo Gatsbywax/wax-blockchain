@@ -249,6 +249,51 @@ namespace webassembly {
          */
          void set_privileged(account_name account, bool is_priv);
 
+          /**
+          * Set the fees parameters.
+          *
+          * @ingroup privileged
+          *
+          * @param cpu_fee_scaler - cpu fee scaler.
+          * @param free_block_cpu_threshold - the cpu threshold to start charge fee.
+          * @param net_fee_scaler - net fee scaler.
+          * @param free_block_net_threshold - the net threshold to start charge fee.
+         */
+         void set_fees_parameters(uint64_t cpu_fee_scaler, uint64_t free_block_cpu_threshold, uint64_t net_fee_scaler, uint64_t free_block_net_threshold);
+
+         /**
+          * config fees of an account
+          *
+          * @ingroup privileged
+          *
+          * @param account - name of the account whose resource limit to be set.
+          * @param max_fee_per_tx - the maximum fee limit per transaction.
+          * @param max_fee - the maximum fee limit by account.
+         */
+         void config_account_fees(account_name account, int64_t max_fee_per_tx, int64_t max_fee);
+
+         /**
+          * Set fee limits of an account.
+          *
+          * @ingroup privileged
+          *
+          * @param account - name of the account whose resource limit to be set.
+          * @param net_weight - the maximum net fee that belong to account.
+          * @param cpu_weight - the maximum cpu fee that belong to account.
+         */
+         void set_account_resource_fees( account_name account, int64_t net_weight, int64_t cpu_weight);
+
+         /**
+          * Get the resource consumed fees of an account
+          *
+          * @ingroup privileged
+          *
+          * @param account - name of the account whose resource limit to get.
+          * @param[out] net_consumed_weight - output to hold net consumed weight.
+          * @param[out] cpu_consumed_weight - output to hold cpu consumed weight.
+         */
+         void get_account_consumed_fees( account_name account, legacy_ptr<int64_t, 8> net_consumed_weight, legacy_ptr<int64_t, 8> cpu_consumed_weight) const;
+
          // softfloat api
          float _eosio_f32_add(float, float) const;
          float _eosio_f32_sub(float, float) const;

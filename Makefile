@@ -42,7 +42,7 @@ serial-test: compile
 .PHONY: long-test
 long-test: compile
 	cd build && ctest -L "long_running_tests"
-
+	
 .PHONY:dev-docker-stop
 dev-docker-stop:
 	-docker rm -f $(DEV_DOCKER_CONTAINER)
