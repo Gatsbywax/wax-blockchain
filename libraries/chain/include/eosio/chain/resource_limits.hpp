@@ -74,7 +74,7 @@ namespace eosio { namespace chain {
 
          void add_indices();
          void initialize_database();
-         void add_fees_config_db();
+         void add_fee_params_db();
          void add_to_snapshot( const snapshot_writer_ptr& snapshot ) const;
          void read_from_snapshot( const snapshot_reader_ptr& snapshot );
 

@@ -316,10 +316,10 @@ namespace eosio::chain {
          ("data", state)
       );
    }
-   void deep_mind_handler::on_init_resource_fees_config(const resource_limits::fee_params_object& fees_config)
+   void deep_mind_handler::on_init_fee_params(const resource_limits::fee_params_object& fee_params)
    {
-      fc_dlog(_logger, "RLIMIT_OP FEES_CONFIG INS ${data}",
-         ("data", fees_config)
+      fc_dlog(_logger, "RLIMIT_OP FEE_PARAMS INS ${data}",
+         ("data", fee_params)
       );
    }
    void deep_mind_handler::on_update_resource_limits_config(const resource_limits::resource_limits_config_object& config)
@@ -334,10 +334,10 @@ namespace eosio::chain {
          ("data", state)
       );
    }
-   void deep_mind_handler::on_update_resource_fees_config(const resource_limits::fee_params_object& fees_config)
+   void deep_mind_handler::on_update_fee_params(const resource_limits::fee_params_object& fee_params)
    {
-      fc_dlog(_logger, "RLIMIT_OP FEES_CONFIG UPD ${data}",
-         ("data", fees_config)
+      fc_dlog(_logger, "RLIMIT_OP FEE_PARAMS UPD ${data}",
+         ("data", fee_params)
       );
    }
    void deep_mind_handler::on_newaccount_resource_limits(const resource_limits::resource_limits_object& limits, const resource_limits::resource_usage_object& usage)
@@ -349,15 +349,15 @@ namespace eosio::chain {
          ("data", usage)
       );
    }
-   void deep_mind_handler::on_init_account_fees_limits(const resource_limits::fee_limits_object& fee_limits)
+   void deep_mind_handler::on_init_account_fee_limits(const resource_limits::fee_limits_object& fee_limits)
    {
-      fc_dlog(_logger, "RLIMIT_OP ACCOUNT_FEES_LIMITS INS ${data}",
+      fc_dlog(_logger, "RLIMIT_OP ACCOUNT_FEE_LIMITS INS ${data}",
          ("data", fee_limits)
       );
    }
-   void deep_mind_handler::on_update_account_fees_limits(const resource_limits::fee_limits_object& fee_limits)
+   void deep_mind_handler::on_update_account_fee_limits(const resource_limits::fee_limits_object& fee_limits)
    {
-      fc_dlog(_logger, "RLIMIT_OP ACCOUNT_FEES_LIMITS UPD ${data}",
+      fc_dlog(_logger, "RLIMIT_OP ACCOUNT_FEE_LIMITS UPD ${data}",
          ("data", fee_limits)
       );
    }

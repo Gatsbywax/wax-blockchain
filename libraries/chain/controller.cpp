@@ -3861,7 +3861,7 @@ void controller_impl::on_activation<builtin_protocol_feature_t::transaction_fee>
       add_intrinsic_to_whitelist( ps.whitelisted_intrinsics, "set_fee_limits" );
       add_intrinsic_to_whitelist( ps.whitelisted_intrinsics, "get_fee_consumption" );
    } );
-   resource_limits.add_fees_config_db();
+   resource_limits.add_fee_params_db();
 }
 /// End of protocol feature activation handlers
 

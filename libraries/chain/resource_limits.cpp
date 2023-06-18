@@ -73,12 +73,12 @@ void resource_limits_manager::initialize_database() {
    }
 }
 
-void resource_limits_manager::add_fees_config_db() {
-   const auto& fees_config = _db.create<fee_params_object>([](fee_params_object& fees_config){
+void resource_limits_manager::add_fee_params_db() {
+   const auto& fee_params = _db.create<fee_params_object>([](fee_params_object& fee_params){
       // see default settings in the declaration
    });
    if (auto dm_logger = _control.get_deep_mind_logger(false)) {
-      dm_logger->on_init_resource_fees_config(fees_config);
+      dm_logger->on_init_fee_params(fee_params);
    }
 }
 
@@ -123,7 +123,7 @@ void resource_limits_manager::initialize_account(const account_name& account, bo
       bf.owner = account;
       });
       if (auto dm_logger = _control.get_deep_mind_logger(is_trx_transient)) {
-         dm_logger->on_init_account_fees_limits(fee_limits);
+         dm_logger->on_init_account_fee_limits(fee_limits);
       }
    }
 }
@@ -151,19 +151,19 @@ void resource_limits_manager::set_fees_parameters(uint64_t cpu_fee_scaler, uint6
    EOS_ASSERT( free_block_cpu_threshold < config.cpu_limit_parameters.max, resource_limit_exception, "free_block_cpu_threshold must be lower maximum cpu_limit_parameters" );
    EOS_ASSERT( free_block_net_threshold < config.net_limit_parameters.max, resource_limit_exception, "free_block_net_threshold must be lower maximum net_limit_parameters" );
 
-   const auto& fees_config = _db.get<fee_params_object>();
-   if( fees_config.cpu_fee_scaler == cpu_fee_scaler && fees_config.free_block_cpu_threshold == free_block_cpu_threshold && fees_config.net_fee_scaler == net_fee_scaler && fees_config.free_block_net_threshold == free_block_net_threshold )
+   const auto& fee_params = _db.get<fee_params_object>();
+   if( fee_params.cpu_fee_scaler == cpu_fee_scaler && fee_params.free_block_cpu_threshold == free_block_cpu_threshold && fee_params.net_fee_scaler == net_fee_scaler && fee_params.free_block_net_threshold == free_block_net_threshold )
    {
       return;
    }
-   _db.modify(fees_config, [&](fee_params_object& c){
+   _db.modify(fee_params, [&](fee_params_object& c){
       c.cpu_fee_scaler = cpu_fee_scaler;
       c.free_block_cpu_threshold = free_block_cpu_threshold;
       c.net_fee_scaler = net_fee_scaler;
       c.free_block_net_threshold = free_block_net_threshold;
 
       if (auto dm_logger = _control.get_deep_mind_logger(false)) {
-         dm_logger->on_update_resource_fees_config(c);
+         dm_logger->on_update_fee_params(c);
       }
    });
 }
@@ -354,7 +354,7 @@ void resource_limits_manager::add_transaction_usage_and_fees(const flat_set<acco
                bf.net_weight_consumption += net_fee;
             }
             if (auto dm_logger = _control.get_deep_mind_logger(is_trx_transient)) {
-               dm_logger->on_update_account_fees_limits(bf);
+               dm_logger->on_update_account_fee_limits(bf);
             }
          });
       }
@@ -441,26 +441,26 @@ std::pair<int64_t, int64_t> resource_limits_manager::get_account_limit_fees( con
 int64_t resource_limits_manager::get_cpu_usage_fee_to_bill( int64_t cpu_usage ) const {
    const auto& state = _db.get<resource_limits_state_object>();
    const auto& config = _db.get<resource_limits_config_object>();
-   const auto& fees_config = _db.get<fee_params_object>();
+   const auto& fee_params = _db.get<fee_params_object>();
    return calculate_resource_fee(
       cpu_usage, 
       state.average_block_cpu_usage.average(),
-      fees_config.free_block_cpu_threshold,
+      fee_params.free_block_cpu_threshold,
       config.cpu_limit_parameters.max,
-      fees_config.cpu_fee_scaler
+      fee_params.cpu_fee_scaler
    );
 }
 
 int64_t resource_limits_manager::get_net_usage_fee_to_bill( int64_t net_usage ) const {
    const auto& state = _db.get<resource_limits_state_object>();
    const auto& config = _db.get<resource_limits_config_object>();
-   const auto& fees_config = _db.get<fee_params_object>();
+   const auto& fee_params = _db.get<fee_params_object>();
    return calculate_resource_fee(
       net_usage, 
       state.average_block_net_usage.average(),
-      fees_config.free_block_net_threshold,
+      fee_params.free_block_net_threshold,
       config.net_limit_parameters.max,
-      fees_config.net_fee_scaler
+      fee_params.net_fee_scaler
    );
 }
 
@@ -554,7 +554,7 @@ void resource_limits_manager::config_account_fee_limits(const account_name& acco
          bf.tx_fee_limit = tx_fee_limit;
          bf.account_fee_limit = account_fee_limit;
          if (auto dm_logger = _control.get_deep_mind_logger(is_trx_transient)) {
-            dm_logger->on_update_account_fees_limits(bf);
+            dm_logger->on_update_account_fee_limits(bf);
          }
       });
    }else{
@@ -562,7 +562,7 @@ void resource_limits_manager::config_account_fee_limits(const account_name& acco
          bf.tx_fee_limit = tx_fee_limit;
          bf.account_fee_limit = account_fee_limit;
          if (auto dm_logger = _control.get_deep_mind_logger(is_trx_transient)) {
-            dm_logger->on_update_account_fees_limits(bf);
+            dm_logger->on_update_account_fee_limits(bf);
          }
       });
    }
@@ -579,7 +579,7 @@ void resource_limits_manager::set_account_fee_limits( const account_name& accoun
          bf.cpu_weight_consumption = 0;
          // other values see default settings in the declaration
          if (auto dm_logger = _control.get_deep_mind_logger(is_trx_transient)) {
-            dm_logger->on_update_account_fees_limits(bf);
+            dm_logger->on_update_account_fee_limits(bf);
          }
       });
    }else{
@@ -589,7 +589,7 @@ void resource_limits_manager::set_account_fee_limits( const account_name& accoun
          bf.net_weight_consumption = 0;
          bf.cpu_weight_consumption = 0;
          if (auto dm_logger = _control.get_deep_mind_logger(is_trx_transient)) {
-               dm_logger->on_update_account_fees_limits(bf);
+               dm_logger->on_update_account_fee_limits(bf);
          }
       });
    }

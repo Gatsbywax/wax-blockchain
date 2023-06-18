@@ -21,7 +21,7 @@ class resource_limits_fixture: private chainbase_fixture<1024*1024>, public test
       {
          add_indices();
          initialize_database();
-         add_fees_config_db();
+         add_fee_params_db();
       }
 
       ~resource_limits_fixture() {}
