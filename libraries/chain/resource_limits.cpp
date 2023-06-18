@@ -15,8 +15,8 @@ using resource_index_set = index_set<
    resource_usage_index,
    resource_limits_state_index,
    resource_limits_config_index,
-   resource_fees_config_index,
-   resource_fees_index
+   fee_params_index,
+   fee_limits_index
 >;
 
 static_assert( config::rate_limiting_precision > 0, "config::rate_limiting_precision must be positive" );
@@ -74,7 +74,7 @@ void resource_limits_manager::initialize_database() {
 }
 
 void resource_limits_manager::add_fees_config_db() {
-   const auto& fees_config = _db.create<resource_fees_config_object>([](resource_fees_config_object& fees_config){
+   const auto& fees_config = _db.create<fee_params_object>([](fee_params_object& fees_config){
       // see default settings in the declaration
    });
    if (auto dm_logger = _control.get_deep_mind_logger(false)) {
@@ -118,12 +118,12 @@ void resource_limits_manager::initialize_account(const account_name& account, bo
       dm_logger->on_newaccount_resource_limits(limits, usage);
    }
 
-   if(_control.is_builtin_activated( builtin_protocol_feature_t::allow_charging_fee )){
-      const auto& fees_limits = _db.create<resource_fees_object>([&]( resource_fees_object& bf ) {
+   if(_control.is_builtin_activated( builtin_protocol_feature_t::transaction_fee )){
+      const auto& fee_limits = _db.create<fee_limits_object>([&]( fee_limits_object& bf ) {
       bf.owner = account;
       });
       if (auto dm_logger = _control.get_deep_mind_logger(is_trx_transient)) {
-         dm_logger->on_init_account_fees_limits(fees_limits);
+         dm_logger->on_init_account_fees_limits(fee_limits);
       }
    }
 }
@@ -151,12 +151,12 @@ void resource_limits_manager::set_fees_parameters(uint64_t cpu_fee_scaler, uint6
    EOS_ASSERT( free_block_cpu_threshold < config.cpu_limit_parameters.max, resource_limit_exception, "free_block_cpu_threshold must be lower maximum cpu_limit_parameters" );
    EOS_ASSERT( free_block_net_threshold < config.net_limit_parameters.max, resource_limit_exception, "free_block_net_threshold must be lower maximum net_limit_parameters" );
 
-   const auto& fees_config = _db.get<resource_fees_config_object>();
+   const auto& fees_config = _db.get<fee_params_object>();
    if( fees_config.cpu_fee_scaler == cpu_fee_scaler && fees_config.free_block_cpu_threshold == free_block_cpu_threshold && fees_config.net_fee_scaler == net_fee_scaler && fees_config.free_block_net_threshold == free_block_net_threshold )
    {
       return;
    }
-   _db.modify(fees_config, [&](resource_fees_config_object& c){
+   _db.modify(fees_config, [&](fee_params_object& c){
       c.cpu_fee_scaler = cpu_fee_scaler;
       c.free_block_cpu_threshold = free_block_cpu_threshold;
       c.net_fee_scaler = net_fee_scaler;
@@ -255,7 +255,7 @@ void resource_limits_manager::add_transaction_usage_and_fees(const flat_set<acco
    const auto& state = _db.get<resource_limits_state_object>();
    const auto& config = _db.get<resource_limits_config_object>();
    for( const auto& a : accounts ) {
-      auto& fees_limits = _db.get<resource_fees_object, by_owner>( a );
+      auto& fee_limits = _db.get<fee_limits_object, by_owner>( a );
       const auto& usage = _db.get<resource_usage_object,by_owner>( a );
       int64_t unused;
       int64_t net_weight;
@@ -295,7 +295,7 @@ void resource_limits_manager::add_transaction_usage_and_fees(const flat_set<acco
                      ("max_user_use_in_window",max_user_use_in_window) );
 
       } else if (cpu_fee >= 0){
-         auto available_cpu_fee = fees_limits.cpu_weight - fees_limits.cpu_consumed_weight;
+         auto available_cpu_fee = fee_limits.cpu_weight_limit - fee_limits.cpu_weight_consumption;
          EOS_ASSERT( available_cpu_fee >= cpu_fee,
                      tx_cpu_fee_exceeded,
                      "authorizing account '${n}' has insufficient staked cpu fee for this transaction; needs ${needs} has ${available}",
@@ -322,7 +322,7 @@ void resource_limits_manager::add_transaction_usage_and_fees(const flat_set<acco
                      ("max_user_use_in_window",max_user_use_in_window) );
 
       } else if (net_fee >= 0){
-         auto available_net_fee = fees_limits.net_weight - fees_limits.net_consumed_weight;
+         auto available_net_fee = fee_limits.net_weight_limit - fee_limits.net_weight_consumption;
          EOS_ASSERT( available_net_fee >= net_fee,
                      tx_net_fee_exceeded,
                      "authorizing account '${n}' has insufficient staked net fee for this transaction; needs ${needs} has ${available}",
@@ -333,25 +333,25 @@ void resource_limits_manager::add_transaction_usage_and_fees(const flat_set<acco
 
       if ( net_fee >= 0 || cpu_fee >= 0 ) {
          auto tx_fee = std::max(net_fee, static_cast<int64_t>(0)) + std::max(cpu_fee, static_cast<int64_t>(0));
-         if(fees_limits.max_fee_per_tx > 0){
-            EOS_ASSERT( tx_fee <= fees_limits.max_fee_per_tx, max_tx_fee_exceeded, "the transaction has consumed fee exceeded the maximum limit fee per transaction; consumed: ${consumed}, limit: ${limit}",
+         if(fee_limits.tx_fee_limit > 0){
+            EOS_ASSERT( tx_fee <= fee_limits.tx_fee_limit, max_tx_fee_exceeded, "the transaction has consumed fee exceeded the maximum limit fee per transaction; consumed: ${consumed}, limit: ${limit}",
                ("consumed",tx_fee)
-               ("limit",fees_limits.max_fee_per_tx) );
+               ("limit",fee_limits.tx_fee_limit) );
          }
 
-         if(fees_limits.max_fee > 0){
-            auto total_fee_consumed = tx_fee + fees_limits.net_consumed_weight + fees_limits.cpu_consumed_weight;
-            EOS_ASSERT( total_fee_consumed <= fees_limits.max_fee, max_account_fee_exceeded, "the account has consumed fee exceeded the maximum configured fee; consumed: ${consumed}, limit: ${limit}",
+         if(fee_limits.account_fee_limit > 0){
+            auto total_fee_consumed = tx_fee + fee_limits.net_weight_consumption + fee_limits.cpu_weight_consumption;
+            EOS_ASSERT( total_fee_consumed <= fee_limits.account_fee_limit, max_account_fee_exceeded, "the account has consumed fee exceeded the maximum configured fee; consumed: ${consumed}, limit: ${limit}",
                ("consumed",total_fee_consumed)
-               ("limit",fees_limits.max_fee) );
+               ("limit",fee_limits.account_fee_limit) );
          }
 
-         _db.modify(fees_limits, [&](resource_fees_object& bf){
+         _db.modify(fee_limits, [&](fee_limits_object& bf){
             if (cpu_fee >= 0) {
-               bf.cpu_consumed_weight += cpu_fee;
+               bf.cpu_weight_consumption += cpu_fee;
             }
             if (net_fee >= 0) {
-               bf.net_consumed_weight += net_fee;
+               bf.net_weight_consumption += net_fee;
             }
             if (auto dm_logger = _control.get_deep_mind_logger(is_trx_transient)) {
                dm_logger->on_update_account_fees_limits(bf);
@@ -407,41 +407,41 @@ int64_t resource_limits_manager::get_account_ram_usage( const account_name& name
    return _db.get<resource_usage_object,by_owner>( name ).ram_usage;
 }
 
-void resource_limits_manager::get_account_consumed_fees( const account_name& account, int64_t& net_consumed_weight, int64_t& cpu_consumed_weight) const {
-   const auto& fees_limits = _db.find<resource_fees_object,by_owner>( account );
-   if (fees_limits == nullptr) {
-      net_consumed_weight = 0;
-      cpu_consumed_weight = 0;
+void resource_limits_manager::get_account_fee_consumption( const account_name& account, int64_t& net_weight_consumption, int64_t& cpu_weight_consumption) const {
+   const auto& fee_limits = _db.find<fee_limits_object,by_owner>( account );
+   if (fee_limits == nullptr) {
+      net_weight_consumption = 0;
+      cpu_weight_consumption = 0;
    }else{
-      net_consumed_weight = fees_limits->net_consumed_weight;
-      cpu_consumed_weight = fees_limits->cpu_consumed_weight;
+      net_weight_consumption = fee_limits->net_weight_consumption;
+      cpu_weight_consumption = fee_limits->cpu_weight_consumption;
    }
 }
 
 std::pair<int64_t, int64_t> resource_limits_manager::get_account_available_fees( const account_name& account) const {
-   const auto& fees_limits = _db.find<resource_fees_object,by_owner>( account );
-   if (fees_limits == nullptr) {
+   const auto& fee_limits = _db.find<fee_limits_object,by_owner>( account );
+   if (fee_limits == nullptr) {
       return{0, 0};
    }else{
-      int64_t available_net_fee = fees_limits->net_weight - fees_limits->net_consumed_weight;
-      int64_t available_cpu_fee = fees_limits->cpu_weight - fees_limits->cpu_consumed_weight;
+      int64_t available_net_fee = fee_limits->net_weight_limit - fee_limits->net_weight_consumption;
+      int64_t available_cpu_fee = fee_limits->cpu_weight_limit - fee_limits->cpu_weight_consumption;
       return{available_net_fee, available_cpu_fee};
    }
 }
 
 std::pair<int64_t, int64_t> resource_limits_manager::get_account_limit_fees( const account_name& account) const {
-   const auto& fees_limits = _db.find<resource_fees_object,by_owner>( account );
-   if (fees_limits == nullptr) {
+   const auto& fee_limits = _db.find<fee_limits_object,by_owner>( account );
+   if (fee_limits == nullptr) {
       return{0, 0};
    }else{
-      return{fees_limits->max_fee_per_tx, fees_limits->max_fee};
+      return{fee_limits->tx_fee_limit, fee_limits->account_fee_limit};
    }
 }
 
 int64_t resource_limits_manager::get_cpu_usage_fee_to_bill( int64_t cpu_usage ) const {
    const auto& state = _db.get<resource_limits_state_object>();
    const auto& config = _db.get<resource_limits_config_object>();
-   const auto& fees_config = _db.get<resource_fees_config_object>();
+   const auto& fees_config = _db.get<fee_params_object>();
    return calculate_resource_fee(
       cpu_usage, 
       state.average_block_cpu_usage.average(),
@@ -454,7 +454,7 @@ int64_t resource_limits_manager::get_cpu_usage_fee_to_bill( int64_t cpu_usage ) 
 int64_t resource_limits_manager::get_net_usage_fee_to_bill( int64_t net_usage ) const {
    const auto& state = _db.get<resource_limits_state_object>();
    const auto& config = _db.get<resource_limits_config_object>();
-   const auto& fees_config = _db.get<resource_fees_config_object>();
+   const auto& fees_config = _db.get<fee_params_object>();
    return calculate_resource_fee(
       net_usage, 
       state.average_block_net_usage.average(),
@@ -542,25 +542,25 @@ void resource_limits_manager::get_account_limits( const account_name& account, i
    }
 }
 
-void resource_limits_manager::config_account_fees(const account_name& account, int64_t max_fee_per_tx, int64_t max_fee, bool is_trx_transient) {
-   EOS_ASSERT( max_fee_per_tx >= -1, resource_limit_exception,
+void resource_limits_manager::config_account_fee_limits(const account_name& account, int64_t tx_fee_limit, int64_t account_fee_limit, bool is_trx_transient) {
+   EOS_ASSERT( tx_fee_limit >= -1, resource_limit_exception,
               "max consumed fee must be positive or -1 (unlimited)");
-   EOS_ASSERT( max_fee >= -1, resource_limit_exception,
+   EOS_ASSERT( account_fee_limit >= -1, resource_limit_exception,
               "max consumed fee per transaction must be positive or -1 (unlimited)");
-   const auto& fees_limits = _db.find<resource_fees_object,by_owner>( account );
-   if (fees_limits == nullptr) {
-      _db.create<resource_fees_object>([&]( resource_fees_object& bf ) {
+   const auto& fee_limits = _db.find<fee_limits_object,by_owner>( account );
+   if (fee_limits == nullptr) {
+      _db.create<fee_limits_object>([&]( fee_limits_object& bf ) {
          bf.owner = account;
-         bf.max_fee_per_tx = max_fee_per_tx;
-         bf.max_fee = max_fee;
+         bf.tx_fee_limit = tx_fee_limit;
+         bf.account_fee_limit = account_fee_limit;
          if (auto dm_logger = _control.get_deep_mind_logger(is_trx_transient)) {
             dm_logger->on_update_account_fees_limits(bf);
          }
       });
    }else{
-      _db.modify(_db.get<resource_fees_object,by_owner>( account ), [&](auto& bf){
-         bf.max_fee_per_tx = max_fee_per_tx;
-         bf.max_fee = max_fee;
+      _db.modify(_db.get<fee_limits_object,by_owner>( account ), [&](auto& bf){
+         bf.tx_fee_limit = tx_fee_limit;
+         bf.account_fee_limit = account_fee_limit;
          if (auto dm_logger = _control.get_deep_mind_logger(is_trx_transient)) {
             dm_logger->on_update_account_fees_limits(bf);
          }
@@ -568,26 +568,26 @@ void resource_limits_manager::config_account_fees(const account_name& account, i
    }
 }
 
-void resource_limits_manager::set_account_resource_fees( const account_name& account,int64_t net_weight, int64_t cpu_weight, bool is_trx_transient) {
-   const auto& fees_limits = _db.find<resource_fees_object,by_owner>( account );
-   if (fees_limits == nullptr) {
-      _db.create<resource_fees_object>([&]( resource_fees_object& bf ) {
+void resource_limits_manager::set_account_fee_limits( const account_name& account,int64_t net_weight_limit, int64_t cpu_weight_limit, bool is_trx_transient) {
+   const auto& fee_limits = _db.find<fee_limits_object,by_owner>( account );
+   if (fee_limits == nullptr) {
+      _db.create<fee_limits_object>([&]( fee_limits_object& bf ) {
          bf.owner = account;
-         bf.net_weight = net_weight;
-         bf.cpu_weight = cpu_weight;
-         bf.net_consumed_weight = 0;
-         bf.cpu_consumed_weight = 0;
+         bf.net_weight_limit = net_weight_limit;
+         bf.cpu_weight_limit = cpu_weight_limit;
+         bf.net_weight_consumption = 0;
+         bf.cpu_weight_consumption = 0;
          // other values see default settings in the declaration
          if (auto dm_logger = _control.get_deep_mind_logger(is_trx_transient)) {
             dm_logger->on_update_account_fees_limits(bf);
          }
       });
    }else{
-      _db.modify(_db.get<resource_fees_object,by_owner>( account ), [&](auto& bf){
-         bf.net_weight = net_weight;
-         bf.cpu_weight = cpu_weight;
-         bf.net_consumed_weight = 0;
-         bf.cpu_consumed_weight = 0;
+      _db.modify(_db.get<fee_limits_object,by_owner>( account ), [&](auto& bf){
+         bf.net_weight_limit = net_weight_limit;
+         bf.cpu_weight_limit = cpu_weight_limit;
+         bf.net_weight_consumption = 0;
+         bf.cpu_weight_consumption = 0;
          if (auto dm_logger = _control.get_deep_mind_logger(is_trx_transient)) {
                dm_logger->on_update_account_fees_limits(bf);
          }
@@ -603,19 +603,19 @@ bool resource_limits_manager::is_unlimited_cpu( const account_name& account ) co
    return false;
 }
 
-bool resource_limits_manager::is_account_allow_charing_fee(const flat_set<account_name>& accounts){
-   auto is_allow_charing_fee = false;
+bool resource_limits_manager::is_account_enable_charing_fee(const flat_set<account_name>& accounts){
+   auto is_enable_charing_fee = false;
    for( const auto& account : accounts ) {
-      const auto& fees_limits = _db.find<resource_fees_object,by_owner>( account );
-      if (fees_limits == nullptr) {
+      const auto& fee_limits = _db.find<fee_limits_object,by_owner>( account );
+      if (fee_limits == nullptr) {
          return false;
-      }else if(fees_limits->max_fee != 0 && fees_limits->max_fee_per_tx != 0){
-         is_allow_charing_fee = true;
+      }else if(fee_limits->account_fee_limit != 0 && fee_limits->tx_fee_limit != 0){
+         is_enable_charing_fee = true;
       }else{
          return false;
       }
    }
-   return is_allow_charing_fee;
+   return is_enable_charing_fee;
 }
 
 void resource_limits_manager::process_account_limit_updates() {

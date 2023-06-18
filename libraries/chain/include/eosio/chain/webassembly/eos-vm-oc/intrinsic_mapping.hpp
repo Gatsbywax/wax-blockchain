@@ -270,9 +270,9 @@ inline constexpr auto get_intrinsic_table() {
       "env.k1_recover",
       "env.get_block_num",
       "env.set_fees_parameters",
-      "env.config_account_fees",
-      "env.set_account_resource_fees",
-      "env.get_account_consumed_fees"
+      "env.config_fee_limits",
+      "env.set_fee_limits",
+      "env.get_fee_consumption"
    );
 }
 inline constexpr std::size_t find_intrinsic_index(std::string_view hf) {

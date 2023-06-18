@@ -357,29 +357,29 @@ BOOST_AUTO_TEST_SUITE(resource_and_fee_limits_tests)
       BOOST_REQUIRE_THROW( add_transaction_usage_and_fees( {"alice"_n}, cpu_usage, 0, -1, -1, iterations++ ), tx_cpu_usage_exceeded );
       BOOST_REQUIRE_THROW( add_transaction_usage_and_fees( {"alice"_n}, cpu_usage, 0, -1, -1, iterations++ ), tx_cpu_usage_exceeded );
       // alice enable charging fee and without limitation
-      config_account_fees("alice"_n, -1, -1, false);
+      config_account_fee_limits("alice"_n, -1, -1, false);
       // system contract set the staked cpu resource by alice
-      set_account_resource_fees("alice"_n, 0, alice_stake, false);
+      set_account_fee_limits("alice"_n, 0, alice_stake, false);
 
       auto cpu_consumed_fee1 = get_cpu_usage_fee_to_bill(cpu_usage);
       // alice retry send transaction
       add_transaction_usage_and_fees({"alice"_n}, cpu_usage, 0, cpu_consumed_fee1, -1, iterations++);
-      int64_t net_consumed_weight1, cpu_consumed_weight1;
-      get_account_consumed_fees("alice"_n, net_consumed_weight1, cpu_consumed_weight1);
+      int64_t net_pending_weight1, cpu_consumed_weight1;
+      get_account_fee_consumption("alice"_n, net_pending_weight1, cpu_consumed_weight1);
 
       // alice should consumed cpu fee
       BOOST_REQUIRE_EQUAL(cpu_consumed_weight1, cpu_consumed_fee1);
-      BOOST_REQUIRE_EQUAL(net_consumed_weight1, 0);
+      BOOST_REQUIRE_EQUAL(net_pending_weight1, 0);
 
       // alice send one more transaction
       auto cpu_consumed_fee2 = get_cpu_usage_fee_to_bill(cpu_usage*2);
       add_transaction_usage_and_fees({"alice"_n}, cpu_usage*2, 0, cpu_consumed_fee2, -1, iterations++);
-      int64_t net_consumed_weight2, cpu_consumed_weight2;
-      get_account_consumed_fees("alice"_n, net_consumed_weight2, cpu_consumed_weight2);
+      int64_t net_pending_weight2, cpu_consumed_weight2;
+      get_account_fee_consumption("alice"_n, net_pending_weight2, cpu_consumed_weight2);
 
       // the comsumed fee should be accumulated
       BOOST_REQUIRE_EQUAL(cpu_consumed_weight2, cpu_consumed_fee1 + cpu_consumed_fee2);
-      BOOST_REQUIRE_EQUAL(net_consumed_weight2, 0);
+      BOOST_REQUIRE_EQUAL(net_pending_weight2, 0);
 
    } FC_LOG_AND_RETHROW();
 
@@ -401,28 +401,28 @@ BOOST_AUTO_TEST_SUITE(resource_and_fee_limits_tests)
       // alice cannot consume more than 1234 net
       BOOST_REQUIRE_THROW( add_transaction_usage_and_fees( {"alice"_n}, 0, net_usage, -1, -1, iterations++ ), tx_net_usage_exceeded );
       // alice enable charging fee and without limitation
-      config_account_fees("alice"_n, -1, -1, false);
+      config_account_fee_limits("alice"_n, -1, -1, false);
       // system contract set the staked resource by alice
-      set_account_resource_fees("alice"_n, alice_stake, 0, false);
+      set_account_fee_limits("alice"_n, alice_stake, 0, false);
 
       auto net_consumed_fee1 = get_net_usage_fee_to_bill(net_usage);
       // alice retry send transaction
       add_transaction_usage_and_fees({"alice"_n}, 0, net_usage, -1, net_consumed_fee1, iterations++);
-      int64_t net_consumed_weight1, cpu_consumed_weight1;
-      get_account_consumed_fees("alice"_n, net_consumed_weight1, cpu_consumed_weight1);
+      int64_t net_pending_weight1, cpu_consumed_weight1;
+      get_account_fee_consumption("alice"_n, net_pending_weight1, cpu_consumed_weight1);
 
       // alice should consumed net fee
       BOOST_REQUIRE_EQUAL(cpu_consumed_weight1, 0);
-      BOOST_REQUIRE_EQUAL(net_consumed_weight1, net_consumed_fee1);
+      BOOST_REQUIRE_EQUAL(net_pending_weight1, net_consumed_fee1);
 
       // alice send one more transaction
       auto net_consumed_fee2 = get_net_usage_fee_to_bill(net_usage*2);
       add_transaction_usage_and_fees({"alice"_n}, 0, net_usage*2, -1, net_consumed_fee2, iterations++);
-      int64_t net_consumed_weight2, cpu_consumed_weight2;
-      get_account_consumed_fees("alice"_n, net_consumed_weight2, cpu_consumed_weight2);
+      int64_t net_pending_weight2, cpu_consumed_weight2;
+      get_account_fee_consumption("alice"_n, net_pending_weight2, cpu_consumed_weight2);
       // the comsumed fee should be accumulated
       BOOST_REQUIRE_EQUAL(cpu_consumed_weight2, 0);
-      BOOST_REQUIRE_EQUAL(net_consumed_weight2, net_consumed_fee1 + net_consumed_fee2);
+      BOOST_REQUIRE_EQUAL(net_pending_weight2, net_consumed_fee1 + net_consumed_fee2);
 
    } FC_LOG_AND_RETHROW();
 
@@ -444,24 +444,24 @@ BOOST_AUTO_TEST_SUITE(resource_and_fee_limits_tests)
       // alice cannot consume more than 123 us
       BOOST_REQUIRE_THROW( add_transaction_usage_and_fees( {"alice"_n}, cpu_usage, 0, -1, -1, iterations++ ), tx_cpu_usage_exceeded );
       // alice enable charging fee and without limitation
-      config_account_fees("alice"_n, -1, -1, false);
+      config_account_fee_limits("alice"_n, -1, -1, false);
       // system contract set the staked resource by alice
-      set_account_resource_fees("alice"_n, 0, alice_stake, false);
+      set_account_fee_limits("alice"_n, 0, alice_stake, false);
       int64_t cpu_weight, x, y;
       get_account_limits( "alice"_n, x, y, cpu_weight );
 
-      int64_t net_consumed_weight, cpu_consumed_weight;
-      get_account_consumed_fees("alice"_n, net_consumed_weight, cpu_consumed_weight);
+      int64_t net_weight_consumption, cpu_weight_consumption;
+      get_account_fee_consumption("alice"_n, net_weight_consumption, cpu_weight_consumption);
 
       auto cpu_consumed_fee_per_tx = get_cpu_usage_fee_to_bill(cpu_usage);
       // alice sends transactions until there no more cpu_weight to comsume
       while (
-         cpu_consumed_weight + cpu_consumed_fee_per_tx <
+         cpu_weight_consumption + cpu_consumed_fee_per_tx <
          cpu_weight
       ){
          add_transaction_usage_and_fees({"alice"_n}, cpu_usage, 0, cpu_consumed_fee_per_tx, -1, iterations);
          process_block_usage(iterations++);
-         get_account_consumed_fees("alice"_n, net_consumed_weight, cpu_consumed_weight);
+         get_account_fee_consumption("alice"_n, net_weight_consumption, cpu_weight_consumption);
       }
 
       // alice send one more transaction
@@ -488,23 +488,23 @@ BOOST_AUTO_TEST_SUITE(resource_and_fee_limits_tests)
       // alice cannot consume more than 1234 net
       BOOST_REQUIRE_THROW( add_transaction_usage_and_fees( {"alice"_n}, 0, net_usage, -1, -1, iterations++ ), tx_net_usage_exceeded );
       // alice enable charging fee and without limitation
-      config_account_fees("alice"_n, -1, -1, false);
+      config_account_fee_limits("alice"_n, -1, -1, false);
       // system contract set the staked resource by alice
-      set_account_resource_fees("alice"_n, alice_stake, 0, false);
+      set_account_fee_limits("alice"_n, alice_stake, 0, false);
       
       int64_t net_weight, x, y;
       get_account_limits( "alice"_n, x, net_weight, y );
-      int64_t net_consumed_weight, cpu_consumed_weight;
-      get_account_consumed_fees("alice"_n, net_consumed_weight, cpu_consumed_weight);
+      int64_t net_weight_consumption, cpu_weight_consumption;
+      get_account_fee_consumption("alice"_n, net_weight_consumption, cpu_weight_consumption);
       auto net_consumed_fee_per_tx = get_net_usage_fee_to_bill(net_usage);
       // alice sends transactions until there no more net_weight to comsume
       while (
-         net_consumed_weight + net_consumed_fee_per_tx <
+         net_weight_consumption + net_consumed_fee_per_tx <
          net_weight
       ){
          add_transaction_usage_and_fees({"alice"_n}, 0, net_usage, -1, net_consumed_fee_per_tx, iterations);
          process_block_usage(iterations++);
-         get_account_consumed_fees("alice"_n, net_consumed_weight, cpu_consumed_weight);
+         get_account_fee_consumption("alice"_n, net_weight_consumption, cpu_weight_consumption);
          net_consumed_fee_per_tx = get_net_usage_fee_to_bill(net_usage);
       }
       // alice send one more transaction
@@ -532,24 +532,24 @@ BOOST_AUTO_TEST_SUITE(resource_and_fee_limits_tests)
       // alice cannot consume more than 123 us
       BOOST_REQUIRE_THROW( add_transaction_usage_and_fees( {"alice"_n}, cpu_usage, 0, -1, -1, iterations++ ), tx_cpu_usage_exceeded );
       // alice enable charging fee and without limitation
-      config_account_fees("alice"_n, -1, -1, false);
+      config_account_fee_limits("alice"_n, -1, -1, false);
       // system contract set the staked resource by alice
-      set_account_resource_fees("alice"_n, 0, alice_stake, false);
+      set_account_fee_limits("alice"_n, 0, alice_stake, false);
 
       auto cpu_consumed_fee = get_cpu_usage_fee_to_bill(cpu_usage);
       // alice retry send transaction
       add_transaction_usage_and_fees({"alice"_n}, cpu_usage, 0, cpu_consumed_fee, -1, iterations++);
-      int64_t net_consumed_weight, cpu_consumed_weight;
-      get_account_consumed_fees("alice"_n, net_consumed_weight, cpu_consumed_weight);
+      int64_t net_weight_consumption, cpu_weight_consumption;
+      get_account_fee_consumption("alice"_n, net_weight_consumption, cpu_weight_consumption);
 
       // alice should consumed cpu fee
-      BOOST_REQUIRE_EQUAL(cpu_consumed_weight, cpu_consumed_fee);
-      BOOST_REQUIRE_EQUAL(net_consumed_weight, 0);
+      BOOST_REQUIRE_EQUAL(cpu_weight_consumption, cpu_consumed_fee);
+      BOOST_REQUIRE_EQUAL(net_weight_consumption, 0);
 
-      set_account_resource_fees("alice"_n, 0, alice_stake, false);
-      get_account_consumed_fees("alice"_n, net_consumed_weight, cpu_consumed_weight);
-      BOOST_REQUIRE_EQUAL(cpu_consumed_weight, 0);
-      BOOST_REQUIRE_EQUAL(net_consumed_weight, 0);
+      set_account_fee_limits("alice"_n, 0, alice_stake, false);
+      get_account_fee_consumption("alice"_n, net_weight_consumption, cpu_weight_consumption);
+      BOOST_REQUIRE_EQUAL(cpu_weight_consumption, 0);
+      BOOST_REQUIRE_EQUAL(net_weight_consumption, 0);
    } FC_LOG_AND_RETHROW();
 
    BOOST_FIXTURE_TEST_CASE(throw_if_cpu_comsumed_fee_exceed_maximum_fee, resource_limits_fixture) try {
@@ -570,45 +570,45 @@ BOOST_AUTO_TEST_SUITE(resource_and_fee_limits_tests)
       // alice cannot consume more than 123 us
       BOOST_REQUIRE_THROW( add_transaction_usage_and_fees( {"alice"_n}, cpu_usage, 0, -1, -1, iterations++ ), tx_cpu_usage_exceeded );
 
-      auto max_fee_per_tx = 12;
+      auto tx_fee_limit = 12;
       // set maximum fee per transaction, unlimited max fee
-      config_account_fees("alice"_n, 1, -1, false);
+      config_account_fee_limits("alice"_n, 1, -1, false);
       BOOST_REQUIRE_THROW( add_transaction_usage_and_fees( {"alice"_n}, cpu_usage, 0, -1, -1, iterations++ ), tx_cpu_usage_exceeded );
 
       // alice enable charging fee and config maximum fee per transaction
-      config_account_fees("alice"_n, max_fee_per_tx, -1, false);
+      config_account_fee_limits("alice"_n, tx_fee_limit, -1, false);
       // system contract set the staked resource by alice
-      set_account_resource_fees("alice"_n, 0, alice_stake, false);
+      set_account_fee_limits("alice"_n, 0, alice_stake, false);
 
       // should throw if the transaction fee exceeds max fee per transaction configuration
       auto cpu_consumed_fee = get_cpu_usage_fee_to_bill(cpu_usage);
       BOOST_REQUIRE_THROW( add_transaction_usage_and_fees( {"alice"_n}, cpu_usage, 0, cpu_consumed_fee, -1, iterations++ ), max_tx_fee_exceeded );
       
       // update maximum fee per tx
-      config_account_fees("alice"_n, cpu_consumed_fee, -1, false);
+      config_account_fee_limits("alice"_n, cpu_consumed_fee, -1, false);
       // alice should able to send transaction
       add_transaction_usage_and_fees({"alice"_n}, cpu_usage, 0, cpu_consumed_fee, -1, iterations++);
       
-      int64_t net_consumed_weight, cpu_consumed_weight;
-      get_account_consumed_fees("alice"_n, net_consumed_weight, cpu_consumed_weight);
+      int64_t net_weight_consumption, cpu_weight_consumption;
+      get_account_fee_consumption("alice"_n, net_weight_consumption, cpu_weight_consumption);
       cpu_consumed_fee = get_cpu_usage_fee_to_bill(cpu_usage);
       // alice set max fee is 20'0000 weight
-      auto max_fee = 200000;
-      config_account_fees("alice"_n, -1, max_fee, false);
+      auto account_fee_limit = 200000;
+      config_account_fee_limits("alice"_n, -1, account_fee_limit, false);
       // send transactions until the consumed fee reach to near the maximum fee
       while (
-         max_fee >= cpu_consumed_fee + cpu_consumed_weight + net_consumed_weight
+         account_fee_limit >= cpu_consumed_fee + cpu_weight_consumption + net_weight_consumption
       ) {
          add_transaction_usage_and_fees({"alice"_n}, cpu_usage, 0, cpu_consumed_fee, -1, iterations++);
-         get_account_consumed_fees("alice"_n, net_consumed_weight, cpu_consumed_weight);
+         get_account_fee_consumption("alice"_n, net_weight_consumption, cpu_weight_consumption);
          cpu_consumed_fee = get_cpu_usage_fee_to_bill(cpu_usage);
       }
       // alice should not push transaction exceeds max fee limit
       BOOST_REQUIRE_THROW( add_transaction_usage_and_fees( {"alice"_n}, cpu_usage, 0, cpu_consumed_fee, -1, iterations++ ), max_account_fee_exceeded );
       
       // config new maximum fee
-      max_fee = 300000;
-      config_account_fees("alice"_n, -1, max_fee, false);
+      account_fee_limit = 300000;
+      config_account_fee_limits("alice"_n, -1, account_fee_limit, false);
 
       // alice should able to send transaction
       add_transaction_usage_and_fees({"alice"_n}, cpu_usage, 0, cpu_consumed_fee, -1, iterations++);
@@ -635,9 +635,9 @@ BOOST_AUTO_TEST_SUITE(resource_and_fee_limits_tests)
       // set fee threshold that is always return zero fee
       set_fees_parameters(50000000000, 199'999, 50000000000, 0);
       // alice enable charging fee and without limitation
-      config_account_fees("alice"_n, -1, -1, false);
+      config_account_fee_limits("alice"_n, -1, -1, false);
       // system contract set the staked cpu resource by alice
-      set_account_resource_fees("alice"_n, 0, alice_stake, false);
+      set_account_fee_limits("alice"_n, 0, alice_stake, false);
 
       auto cpu_consumed_fee = get_cpu_usage_fee_to_bill(cpu_usage);
       // charge zero fee
@@ -645,12 +645,12 @@ BOOST_AUTO_TEST_SUITE(resource_and_fee_limits_tests)
 
       // alice retry send transaction
       add_transaction_usage_and_fees({"alice"_n}, cpu_usage, 0, cpu_consumed_fee, -1, iterations++);
-      int64_t net_consumed_weight, cpu_consumed_weight;
-      get_account_consumed_fees("alice"_n, net_consumed_weight, cpu_consumed_weight);
+      int64_t net_weight_consumption, cpu_weight_consumption;
+      get_account_fee_consumption("alice"_n, net_weight_consumption, cpu_weight_consumption);
 
       // alice should consumed cpu fee
-      BOOST_REQUIRE_EQUAL(cpu_consumed_weight, cpu_consumed_fee);
-      BOOST_REQUIRE_EQUAL(net_consumed_weight, 0);
+      BOOST_REQUIRE_EQUAL(cpu_weight_consumption, cpu_consumed_fee);
+      BOOST_REQUIRE_EQUAL(net_weight_consumption, 0);
 
    } FC_LOG_AND_RETHROW();
 BOOST_AUTO_TEST_SUITE_END()

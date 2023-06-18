@@ -2411,8 +2411,8 @@ read_only::get_account_results read_only::get_account( const get_account_params&
    result.ram_usage = rm.get_account_ram_usage( result.account_name );
 
    if(result.net_limit.max != -1 ){
-      std::tie(result.max_fee_per_tx, result.max_fee) = rm.get_account_limit_fees(result.account_name);
-      rm.get_account_consumed_fees(result.account_name, result.pending_net_weight, result.pending_cpu_weight);
+      std::tie(result.tx_fee_limit, result.account_fee_limit) = rm.get_account_limit_fees(result.account_name);
+      rm.get_account_fee_consumption(result.account_name, result.pending_net_weight, result.pending_cpu_weight);
    }
    
    if ( producer_plug ) {  // producer_plug is null when called from chain_plugin_tests.cpp and get_table_tests.cpp

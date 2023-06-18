@@ -503,22 +503,22 @@ operator<<(datastream<ST>&                                                      
 template <typename ST>
 datastream<ST>&
 operator<<(datastream<ST>&                                                                            ds,
-           const history_serial_wrapper<eosio::chain::resource_limits::resource_fees_object>& obj) {
+           const history_serial_wrapper<eosio::chain::resource_limits::fee_limits_object>& obj) {
    fc::raw::pack(ds, fc::unsigned_int(0));
    fc::raw::pack(ds, as_type<uint64_t>(obj.obj.owner.to_uint64_t()));
-   fc::raw::pack(ds, as_type<int64_t>(obj.obj.max_fee_per_tx));
-   fc::raw::pack(ds, as_type<int64_t>(obj.obj.max_fee));
-   fc::raw::pack(ds, as_type<int64_t>(obj.obj.net_weight));
-   fc::raw::pack(ds, as_type<int64_t>(obj.obj.cpu_weight));
-   fc::raw::pack(ds, as_type<int64_t>(obj.obj.net_consumed_weight));
-   fc::raw::pack(ds, as_type<int64_t>(obj.obj.cpu_consumed_weight));
+   fc::raw::pack(ds, as_type<int64_t>(obj.obj.tx_fee_limit));
+   fc::raw::pack(ds, as_type<int64_t>(obj.obj.account_fee_limit));
+   fc::raw::pack(ds, as_type<int64_t>(obj.obj.net_weight_limit));
+   fc::raw::pack(ds, as_type<int64_t>(obj.obj.cpu_weight_limit));
+   fc::raw::pack(ds, as_type<int64_t>(obj.obj.net_weight_consumption));
+   fc::raw::pack(ds, as_type<int64_t>(obj.obj.cpu_weight_consumption));
    return ds;
 }
 
 template <typename ST>
 datastream<ST>&
 operator<<(datastream<ST>&                                                                            ds,
-           const history_serial_wrapper<eosio::chain::resource_limits::resource_fees_config_object>& obj) {
+           const history_serial_wrapper<eosio::chain::resource_limits::fee_params_object>& obj) {
    fc::raw::pack(ds, fc::unsigned_int(0));
    fc::raw::pack(ds, as_type<uint64_t>(obj.obj.cpu_fee_scaler));
    fc::raw::pack(ds, as_type<uint64_t>(obj.obj.free_block_cpu_threshold));

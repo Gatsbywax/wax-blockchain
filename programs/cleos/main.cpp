@@ -2709,8 +2709,8 @@ void get_account( const string& accountName, const string& coresym, bool json_fo
          auto core_symbol = net_total.get_symbol();
 
          std::cout << "account fee settings:" << std::endl;
-         auto to_pretty_max_tx_fee =  res.max_fee_per_tx == -1 ? "no limit" : asset( res.max_fee_per_tx, core_symbol ).to_string();
-         auto to_pretty_max_fee =  res.max_fee == -1 ? "no limit" : asset( res.max_fee, core_symbol ).to_string();
+         auto to_pretty_max_tx_fee =  res.tx_fee_limit == -1 ? "no limit" : asset( res.tx_fee_limit, core_symbol ).to_string();
+         auto to_pretty_max_fee =  res.account_fee_limit == -1 ? "no limit" : asset( res.account_fee_limit, core_symbol ).to_string();
          std::cout << std::fixed << setprecision(3);
          std::cout << indent << std::left << std::setw(11) << "tx limit:"        << std::right << std::setw(18) << to_pretty_max_tx_fee << "\n";
          std::cout << indent << std::left << std::setw(11) << "account limit:"   << std::right << std::setw(18) << to_pretty_max_fee << "\n";

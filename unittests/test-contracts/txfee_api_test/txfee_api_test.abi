@@ -22,7 +22,7 @@
                     "type": "name"
                 },
                 {
-                    "name": "expected_net_consumed_weight",
+                    "name": "expected_net_pending_weight",
                     "type": "int64"
                 },
                 {

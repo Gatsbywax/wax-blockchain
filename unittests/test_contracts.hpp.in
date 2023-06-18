@@ -52,7 +52,8 @@ namespace eosio {
 
          // WAX test contracts
          MAKE_READ_WASM_ABI(wax_rsa,               wax_rsa,               test-contracts)
-         MAKE_READ_WASM_ABI(fees_api_test,   fees_api_test,   test-contracts)
+         MAKE_READ_WASM_ABI(txfee_api_test,        txfee_api_test,        test-contracts)
+         MAKE_READ_WASM_ABI(txfee_eosio_bios,      txfee_eosio_bios,      test-contracts)
       };
    } /// eosio::testing
 }  /// eosio

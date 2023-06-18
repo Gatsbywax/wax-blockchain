@@ -13,7 +13,7 @@
 namespace eosio { namespace chain {
 
    class deep_mind_handler;
-   class resource_fees_config_object;
+   class fee_params_object;
 
    namespace resource_limits {
    namespace impl {
@@ -93,11 +93,11 @@ namespace eosio { namespace chain {
          bool set_account_limits( const account_name& account, int64_t ram_bytes, int64_t net_weight, int64_t cpu_weight, bool is_trx_transient);
          void get_account_limits( const account_name& account, int64_t& ram_bytes, int64_t& net_weight, int64_t& cpu_weight) const;
 
-         void config_account_fees(const account_name& account, int64_t max_fee_per_tx, int64_t max_fee, bool is_trx_transient);
-         void set_account_resource_fees( const account_name& account,int64_t net_weight, int64_t cpu_weight, bool is_trx_transient);
+         void config_account_fee_limits(const account_name& account, int64_t tx_fee_limit, int64_t account_fee_limit, bool is_trx_transient);
+         void set_account_fee_limits( const account_name& account,int64_t net_weight_limit, int64_t cpu_weight_limit, bool is_trx_transient);
 
          bool is_unlimited_cpu( const account_name& account ) const;
-         bool is_account_allow_charing_fee(const flat_set<account_name>& accounts);
+         bool is_account_enable_charing_fee(const flat_set<account_name>& accounts);
 
          void process_account_limit_updates();
          void process_block_usage( uint32_t block_num );
@@ -123,7 +123,7 @@ namespace eosio { namespace chain {
          int64_t calculate_resource_fee(uint64_t resource_usage, uint64_t ema_resource, uint64_t free_block_resource_threshold, uint64_t max_block_resource, uint64_t cpu_fee_scaler) const;
          int64_t get_account_ram_usage( const account_name& name ) const;
 
-         void get_account_consumed_fees( const account_name& account, int64_t& net_consumed_weight, int64_t& cpu_consumed_weight) const;
+         void get_account_fee_consumption( const account_name& account, int64_t& net_weight_consumption, int64_t& cpu_weight_consumption) const;
          std::pair<int64_t, int64_t> get_account_available_fees( const account_name& account) const;
          std::pair<int64_t, int64_t> get_account_limit_fees( const account_name& account) const;
          int64_t get_cpu_usage_fee_to_bill( int64_t cpu_usage ) const;

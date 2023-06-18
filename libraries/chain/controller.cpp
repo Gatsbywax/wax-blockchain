@@ -338,7 +338,7 @@ struct controller_impl {
       set_activation_handler<builtin_protocol_feature_t::get_code_hash>();
       set_activation_handler<builtin_protocol_feature_t::get_block_num>();
       set_activation_handler<builtin_protocol_feature_t::crypto_primitives>();
-      set_activation_handler<builtin_protocol_feature_t::allow_charging_fee>();
+      set_activation_handler<builtin_protocol_feature_t::transaction_fee>();
 
       self.irreversible_block.connect([this](const block_state_ptr& bsp) {
          // producer_plugin has already asserted irreversible_block signal is
@@ -1386,7 +1386,7 @@ struct controller_impl {
                                         transaction_receipt::executed,
                                         trx_context.billed_cpu_time_us,
                                         trace->net_usage );
-         if( self.is_builtin_activated( builtin_protocol_feature_t::allow_charging_fee ) ) {
+         if( self.is_builtin_activated( builtin_protocol_feature_t::transaction_fee ) ) {
             if(trx_context.net_usage_fee >= 0){
                trace->net_fee = trx_context.net_usage_fee;
             }
@@ -1624,7 +1624,7 @@ struct controller_impl {
                trace->receipt = r;
             }
 
-            if( self.is_builtin_activated( builtin_protocol_feature_t::allow_charging_fee ) ) {
+            if( self.is_builtin_activated( builtin_protocol_feature_t::transaction_fee ) ) {
                if(trx_context.net_usage_fee >= 0){
                   trace->net_fee = trx_context.net_usage_fee;
                }
@@ -3854,12 +3854,12 @@ void controller_impl::on_activation<builtin_protocol_feature_t::crypto_primitive
 }
 
 template<>
-void controller_impl::on_activation<builtin_protocol_feature_t::allow_charging_fee>() {
+void controller_impl::on_activation<builtin_protocol_feature_t::transaction_fee>() {
    db.modify( db.get<protocol_state_object>(), [&]( auto& ps ) {
       add_intrinsic_to_whitelist( ps.whitelisted_intrinsics, "set_fees_parameters" );
-      add_intrinsic_to_whitelist( ps.whitelisted_intrinsics, "config_account_fees" );
-      add_intrinsic_to_whitelist( ps.whitelisted_intrinsics, "set_account_resource_fees" );
-      add_intrinsic_to_whitelist( ps.whitelisted_intrinsics, "get_account_consumed_fees" );
+      add_intrinsic_to_whitelist( ps.whitelisted_intrinsics, "config_fee_limits" );
+      add_intrinsic_to_whitelist( ps.whitelisted_intrinsics, "set_fee_limits" );
+      add_intrinsic_to_whitelist( ps.whitelisted_intrinsics, "get_fee_consumption" );
    } );
    resource_limits.add_fees_config_db();
 }

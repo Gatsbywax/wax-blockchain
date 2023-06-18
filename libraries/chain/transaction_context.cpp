@@ -441,7 +441,7 @@ namespace eosio { namespace chain {
                           "greylisted transaction net usage is too high: ${net_usage} > ${net_limit}",
                           ("net_usage", net_usage)("net_limit", eager_net_limit) );
             } else {
-               if( control.is_builtin_activated( builtin_protocol_feature_t::allow_charging_fee ) ){
+               if( control.is_builtin_activated( builtin_protocol_feature_t::transaction_fee ) ){
                   is_tx_net_usage_exceeded = true;
                } else {
                   EOS_THROW( tx_net_usage_exceeded,
@@ -567,7 +567,7 @@ namespace eosio { namespace chain {
             auto account_limit = graylisted ? account_cpu_limit : (cpu_limited_by_account ? account_cpu_limit : objective_duration_limit.count());
 
             if( billed_us > account_limit ) {
-               if(!cpu_limit_due_to_greylist && cpu_limited_by_account && control.is_builtin_activated( builtin_protocol_feature_t::allow_charging_fee ) ){
+               if(!cpu_limit_due_to_greylist && cpu_limited_by_account && control.is_builtin_activated( builtin_protocol_feature_t::transaction_fee ) ){
                   is_tx_cpu_usage_exceeded = true;
                }else{
                   fc::microseconds tx_limit;
@@ -610,8 +610,8 @@ namespace eosio { namespace chain {
 
             if( prev_billed_us >= account_limit ) {
                auto& rl = control.get_mutable_resource_limits_manager();
-               if(cpu_limited_by_account && control.is_builtin_activated( builtin_protocol_feature_t::allow_charging_fee )
-               && rl.is_account_allow_charing_fee( bill_to_accounts )) {
+               if(cpu_limited_by_account && control.is_builtin_activated( builtin_protocol_feature_t::transaction_fee )
+               && rl.is_account_enable_charing_fee( bill_to_accounts )) {
                   auto estimated_cpu_usage_fee = rl.get_cpu_usage_fee_to_bill(prev_billed_us);
                   int64_t x, cpu_fee_available;
                   for( const auto& a : bill_to_accounts ) {
@@ -648,7 +648,7 @@ namespace eosio { namespace chain {
    void transaction_context::validate_and_update_net_usage_fee() {
       if ( is_tx_net_usage_exceeded ) {
          auto& rl = control.get_mutable_resource_limits_manager();
-         if (rl.is_account_allow_charing_fee( bill_to_accounts )) {
+         if (rl.is_account_enable_charing_fee( bill_to_accounts )) {
             net_usage_fee = rl.get_net_usage_fee_to_bill(net_usage);
             int64_t net_fee_available, y;
             for( const auto& a : bill_to_accounts ) {         
@@ -670,7 +670,7 @@ namespace eosio { namespace chain {
    void transaction_context::validate_and_update_cpu_usage_fee(int64_t billed_us, int64_t account_cpu_limit, int64_t subjective_cpu_bill_us) {
       if( is_tx_cpu_usage_exceeded ) {
          auto& rl = control.get_mutable_resource_limits_manager();
-         if ( rl.is_account_allow_charing_fee( bill_to_accounts ) ) {
+         if ( rl.is_account_enable_charing_fee( bill_to_accounts ) ) {
             cpu_usage_fee = rl.get_cpu_usage_fee_to_bill(billed_us);
             int64_t x, cpu_fee_available;
             for( const auto& a : bill_to_accounts ) {         
@@ -714,9 +714,9 @@ namespace eosio { namespace chain {
             }
 
             if ( max_fee_account_limit > 0 ) {
-               int64_t net_consumed_weight, cpu_consumed_weight;
-               rl.get_account_consumed_fees(a, net_consumed_weight, cpu_consumed_weight);
-               auto total_fee_consumed = tx_fee + net_consumed_weight + cpu_consumed_weight;
+               int64_t net_weight_consumption, cpu_weight_consumption;
+               rl.get_account_fee_consumption(a, net_weight_consumption, cpu_weight_consumption);
+               auto total_fee_consumed = tx_fee + net_weight_consumption + cpu_weight_consumption;
                EOS_ASSERT( total_fee_consumed <= max_fee_account_limit,
                   max_account_fee_exceeded,
                   "billed fee amount (${billed}) is greater than the maximum limit fee for the account (${limit})",

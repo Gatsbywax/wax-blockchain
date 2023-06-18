@@ -2086,9 +2086,9 @@ BOOST_AUTO_TEST_CASE( billed_cpu_test ) try {
 } FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE( billed_cpu_fee_test, TESTER ) try {
-
-   set_code( config::system_account_name, contracts::setfeeslimit_eosio_bios_wasm() );
-   set_abi( config::system_account_name, contracts::setfeeslimit_eosio_bios_abi().data() );
+   set_code(config::system_account_name, test_contracts::txfee_api_test_wasm() );
+   set_code( config::system_account_name, test_contracts::txfee_eosio_bios_wasm());
+   set_abi( config::system_account_name, test_contracts::txfee_eosio_bios_abi().data());
 
    account_name acc = "asserter"_n;
    account_name user = "user"_n;
@@ -2151,10 +2151,10 @@ BOOST_FIXTURE_TEST_CASE( billed_cpu_fee_test, TESTER ) try {
 
    auto max_cpu_time_us = control->get_global_properties().configuration.max_transaction_cpu_usage;
 
-   push_action( config::system_account_name, "cfgafee"_n, acc, fc::mutable_variant_object()
+   push_action( config::system_account_name, "cfgfeelimits"_n, config::system_account_name, fc::mutable_variant_object()
            ("account", acc)
-           ("max_tx_fee", -1)
-           ("max_fee", -1)
+           ("tx_fee_limit", -1)
+           ("account_fee_limit", -1)
    );
 
    // Test when cpu limit is 0
@@ -2174,10 +2174,10 @@ BOOST_FIXTURE_TEST_CASE( billed_cpu_fee_test, TESTER ) try {
                          fc_exception_message_starts_with("billed") );
 
    // set account resource fee
-   push_action( config::system_account_name, "setafee"_n, config::system_account_name, fc::mutable_variant_object()
+   push_action( config::system_account_name, "setfeelimits"_n, config::system_account_name, fc::mutable_variant_object()
            ("account", acc)
-           ("net_weight", 9999)
-           ("cpu_weight", 9'99999999)
+           ("net_weight_limit", 9999)
+           ("cpu_weight_limit", 9'99999999)
    );
 
    // Should charge the transaction fee
@@ -2196,13 +2196,13 @@ BOOST_FIXTURE_TEST_CASE( billed_cpu_fee_test, TESTER ) try {
    produce_blocks();
    ptrx = create_delay_trx(0, 3);
 
-   // charge delay transaction
+   // charge fee for delay transaction
    auto dtrace1 = push_trx( ptrx, fc::time_point::maximum(), max_cpu_time_us, true, subjective_cpu_bill_us );
    BOOST_CHECK_GT( *dtrace1->cpu_fee, 0 );
    BOOST_CHECK_GT( *dtrace1->net_fee, 0 );
    BOOST_CHECK_EQUAL(dtrace1->receipt->status, transaction_receipt::delayed);
    produce_blocks(6);
-   // charge delay transaction again once it was executed
+   // charge fee for delay transaction again once it is executed
    auto billed_cpu_time_us = control->get_global_properties().configuration.min_transaction_cpu_usage;
    auto scheduled_trxs = get_scheduled_transactions(); 
    auto dtrace2 = control->push_scheduled_transaction(scheduled_trxs.front(), fc::time_point::maximum(), fc::microseconds::maximum(), billed_cpu_time_us, true);

@@ -261,12 +261,12 @@ Enables new `get_block_num` intrinsic which returns the current block number.
 */
             {}
          } )
-         (  builtin_protocol_feature_t::allow_charging_fee, builtin_protocol_feature_spec{
-            "ALLOW_CHARGING_FEE",
-            fc::variant("82a33ae988cd5f56a680fe570d2b5558d134626ec2553752a76c470185421b85").as<digest_type>(),
+         (  builtin_protocol_feature_t::transaction_fee, builtin_protocol_feature_spec{
+            "TRANSACTION_FEE",
+            fc::variant("620246f752a996f573454039eab88ff326c58321cfc3d45a13a44bb2e468d7ac").as<digest_type>(),
             // SHA256 hash of the raw message below within the comment delimiters (do not modify message below).
 /*
-Builtin protocol feature: ALLOW_CHARGING_FEE
+Builtin protocol feature: TRANSACTION_FEE
 
 Allows privileged contracts to set the fee-charging constraints on resource limit
 Allows privileged contracts to charge fees from the account which exceeds the resource staking limit

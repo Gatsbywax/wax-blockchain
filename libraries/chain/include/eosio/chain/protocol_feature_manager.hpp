@@ -35,7 +35,7 @@ enum class builtin_protocol_feature_t : uint32_t {
    configurable_wasm_limits = 18, // configurable_wasm_limits2,
    crypto_primitives = 19,
    get_block_num = 20,
-   allow_charging_fee = 21,
+   transaction_fee = 21,
    reserved_private_fork_protocol_features = 500000,
 };
 
