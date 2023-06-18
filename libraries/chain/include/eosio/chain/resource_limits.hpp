@@ -80,7 +80,7 @@ namespace eosio { namespace chain {
 
          void initialize_account( const account_name& account, bool is_trx_transient );
          void set_block_parameters( const elastic_limit_parameters& cpu_limit_parameters, const elastic_limit_parameters& net_limit_parameters );
-         void set_fees_parameters(uint64_t cpu_fee_scaler, uint64_t free_block_cpu_threshold, uint64_t net_fee_scaler, uint64_t free_block_net_threshold);
+         void set_fee_parameters(uint64_t cpu_fee_scaler, uint64_t free_block_cpu_threshold, uint64_t net_fee_scaler, uint64_t free_block_net_threshold);
 
          void update_account_usage( const flat_set<account_name>& accounts, uint32_t ordinal );
          void add_transaction_usage( const flat_set<account_name>& accounts, uint64_t cpu_usage, uint64_t net_usage, uint32_t ordinal, bool is_trx_transient = false );
@@ -125,7 +125,7 @@ namespace eosio { namespace chain {
 
          void get_account_fee_consumption( const account_name& account, int64_t& net_weight_consumption, int64_t& cpu_weight_consumption) const;
          std::pair<int64_t, int64_t> get_account_available_fees( const account_name& account) const;
-         std::pair<int64_t, int64_t> get_account_limit_fees( const account_name& account) const;
+         std::pair<int64_t, int64_t> get_config_fee_limits( const account_name& account) const;
          int64_t get_cpu_usage_fee_to_bill( int64_t cpu_usage ) const;
          int64_t get_net_usage_fee_to_bill( int64_t net_usage ) const;
 

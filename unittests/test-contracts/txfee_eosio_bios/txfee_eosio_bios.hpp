@@ -19,7 +19,7 @@ namespace eosio {
          // void preactivate_feature( const ::capi_checksum256* feature_digest );
 
          __attribute__((eosio_wasm_import))
-         void set_fees_parameters( uint64_t cpu_fee_scaler, uint64_t free_block_cpu_threshold, uint64_t net_fee_scaler, uint64_t free_block_net_threshold );
+         void set_fee_parameters( uint64_t cpu_fee_scaler, uint64_t free_block_cpu_threshold, uint64_t net_fee_scaler, uint64_t free_block_net_threshold );
 
          __attribute__((eosio_wasm_import))
          void config_fee_limits( uint64_t account, int64_t tx_fee_limit, int64_t account_fee_limit );
@@ -35,8 +35,8 @@ namespace eosio {
 }
 
 namespace eosio {
-   void set_fees_parameters( uint64_t cpu_fee_scaler, uint64_t free_block_cpu_threshold, uint64_t net_fee_scaler, uint64_t free_block_net_threshold ) {
-      internal_use_do_not_use::set_fees_parameters( cpu_fee_scaler, free_block_cpu_threshold, net_fee_scaler, free_block_net_threshold );
+   void set_fee_parameters( uint64_t cpu_fee_scaler, uint64_t free_block_cpu_threshold, uint64_t net_fee_scaler, uint64_t free_block_net_threshold ) {
+      internal_use_do_not_use::set_fee_parameters( cpu_fee_scaler, free_block_cpu_threshold, net_fee_scaler, free_block_net_threshold );
    }
 
    void config_fee_limits( name account, int64_t tx_fee_limit, int64_t account_fee_limit ) {

@@ -3856,7 +3856,7 @@ void controller_impl::on_activation<builtin_protocol_feature_t::crypto_primitive
 template<>
 void controller_impl::on_activation<builtin_protocol_feature_t::transaction_fee>() {
    db.modify( db.get<protocol_state_object>(), [&]( auto& ps ) {
-      add_intrinsic_to_whitelist( ps.whitelisted_intrinsics, "set_fees_parameters" );
+      add_intrinsic_to_whitelist( ps.whitelisted_intrinsics, "set_fee_parameters" );
       add_intrinsic_to_whitelist( ps.whitelisted_intrinsics, "config_fee_limits" );
       add_intrinsic_to_whitelist( ps.whitelisted_intrinsics, "set_fee_limits" );
       add_intrinsic_to_whitelist( ps.whitelisted_intrinsics, "get_fee_consumption" );

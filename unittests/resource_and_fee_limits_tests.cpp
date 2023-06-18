@@ -633,7 +633,7 @@ BOOST_AUTO_TEST_SUITE(resource_and_fee_limits_tests)
       BOOST_REQUIRE_THROW( add_transaction_usage_and_fees( {"alice"_n}, cpu_usage, 0, -1, -1, iterations++ ), tx_cpu_usage_exceeded );
       BOOST_REQUIRE_THROW( add_transaction_usage_and_fees( {"alice"_n}, cpu_usage, 0, -1, -1, iterations++ ), tx_cpu_usage_exceeded );
       // set fee threshold that is always return zero fee
-      set_fees_parameters(50000000000, 199'999, 50000000000, 0);
+      set_fee_parameters(50000000000, 199'999, 50000000000, 0);
       // alice enable charging fee and without limitation
       config_account_fee_limits("alice"_n, -1, -1, false);
       // system contract set the staked cpu resource by alice

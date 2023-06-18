@@ -2411,7 +2411,7 @@ read_only::get_account_results read_only::get_account( const get_account_params&
    result.ram_usage = rm.get_account_ram_usage( result.account_name );
 
    if(result.net_limit.max != -1 ){
-      std::tie(result.tx_fee_limit, result.account_fee_limit) = rm.get_account_limit_fees(result.account_name);
+      std::tie(result.tx_fee_limit, result.account_fee_limit) = rm.get_config_fee_limits(result.account_name);
       rm.get_account_fee_consumption(result.account_name, result.pending_net_weight, result.pending_cpu_weight);
    }
    

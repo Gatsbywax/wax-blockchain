@@ -56,7 +56,7 @@ void bios::reqactivated( const eosio::checksum256& feature_digest ) {
 
 void bios::setfeeparams( uint64_t cpu_fee_scaler, uint64_t free_block_cpu_threshold, uint64_t net_fee_scaler, uint64_t free_block_net_threshold ) {
    require_auth( get_self() );
-   set_fees_parameters(cpu_fee_scaler, free_block_cpu_threshold, net_fee_scaler, free_block_net_threshold);
+   set_fee_parameters(cpu_fee_scaler, free_block_cpu_threshold, net_fee_scaler, free_block_net_threshold);
 }
 
 void bios::cfgfeelimits( name account, int64_t tx_fee_limit, int64_t account_fee_limit) {

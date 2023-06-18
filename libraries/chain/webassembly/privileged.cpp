@@ -38,8 +38,8 @@ namespace eosio { namespace chain { namespace webassembly {
       (void)legacy_ptr<int64_t>(std::move(cpu_weight));
    }
 
-   void interface::set_fees_parameters(uint64_t cpu_fee_scaler, uint64_t free_block_cpu_threshold, uint64_t net_fee_scaler, uint64_t free_block_net_threshold) {
-      context.control.get_mutable_resource_limits_manager().set_fees_parameters(cpu_fee_scaler, free_block_cpu_threshold, net_fee_scaler, free_block_net_threshold);
+   void interface::set_fee_parameters(uint64_t cpu_fee_scaler, uint64_t free_block_cpu_threshold, uint64_t net_fee_scaler, uint64_t free_block_net_threshold) {
+      context.control.get_mutable_resource_limits_manager().set_fee_parameters(cpu_fee_scaler, free_block_cpu_threshold, net_fee_scaler, free_block_net_threshold);
    }
 
    void interface::config_fee_limits(account_name account, int64_t tx_fee_limit, int64_t account_fee_limit){

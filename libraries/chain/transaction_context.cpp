@@ -704,7 +704,7 @@ namespace eosio { namespace chain {
          auto& rl = control.get_mutable_resource_limits_manager();
          int64_t max_fee_per_tx_limit, max_fee_account_limit;
          for( const auto& a : bill_to_accounts ) { 
-            std::tie(max_fee_per_tx_limit, max_fee_account_limit) = rl.get_account_limit_fees(a);
+            std::tie(max_fee_per_tx_limit, max_fee_account_limit) = rl.get_config_fee_limits(a);
             if ( max_fee_per_tx_limit > 0 ) {
                EOS_ASSERT( tx_fee <= max_fee_per_tx_limit,
                   max_tx_fee_exceeded,

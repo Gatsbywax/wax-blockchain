@@ -269,7 +269,7 @@ inline constexpr auto get_intrinsic_table() {
       "env.blake2_f",
       "env.k1_recover",
       "env.get_block_num",
-      "env.set_fees_parameters",
+      "env.set_fee_parameters",
       "env.config_fee_limits",
       "env.set_fee_limits",
       "env.get_fee_consumption"

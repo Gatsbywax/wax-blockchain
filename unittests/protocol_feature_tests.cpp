@@ -1923,7 +1923,7 @@ BOOST_AUTO_TEST_CASE( allow_charging_fee_test ) { try {
 
    BOOST_CHECK_EXCEPTION(  c.set_code( config::system_account_name, test_contracts::txfee_api_test_wasm() ),
                            wasm_exception,
-                           fc_exception_message_is( "env.set_fees_parameters unresolveable" ) );
+                           fc_exception_message_is( "env.set_fee_parameters unresolveable" ) );
 
    c.preactivate_protocol_features( {*d} );
    const auto bob_account = account_name("bob");

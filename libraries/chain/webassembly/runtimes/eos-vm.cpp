@@ -348,7 +348,7 @@ REGISTER_LEGACY_HOST_FUNCTION(get_blockchain_parameters_packed, privileged_check
 REGISTER_LEGACY_HOST_FUNCTION(set_blockchain_parameters_packed, privileged_check);
 REGISTER_HOST_FUNCTION(is_privileged, privileged_check);
 REGISTER_HOST_FUNCTION(set_privileged, privileged_check);
-REGISTER_HOST_FUNCTION(set_fees_parameters, privileged_check);
+REGISTER_HOST_FUNCTION(set_fee_parameters, privileged_check);
 REGISTER_HOST_FUNCTION(config_fee_limits, privileged_check);
 REGISTER_HOST_FUNCTION(set_fee_limits, privileged_check);
 REGISTER_LEGACY_HOST_FUNCTION(get_fee_consumption, privileged_check);

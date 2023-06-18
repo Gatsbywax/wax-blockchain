@@ -1,7 +1,7 @@
 #include "txfee_api_test.hpp"
 
 [[eosio::action]] void txfee_api_test::setparams() {
-   eosio::internal_use_do_not_use::set_fees_parameters(1, 2, 3, 4);
+   eosio::internal_use_do_not_use::set_fee_parameters(1, 2, 3, 4);
 }
 
 [[eosio::action]] void txfee_api_test::configfees(eosio::name account) {

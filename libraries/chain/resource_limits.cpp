@@ -146,7 +146,7 @@ void resource_limits_manager::set_block_parameters(const elastic_limit_parameter
    });
 }
 
-void resource_limits_manager::set_fees_parameters(uint64_t cpu_fee_scaler, uint64_t free_block_cpu_threshold, uint64_t net_fee_scaler, uint64_t free_block_net_threshold) {
+void resource_limits_manager::set_fee_parameters(uint64_t cpu_fee_scaler, uint64_t free_block_cpu_threshold, uint64_t net_fee_scaler, uint64_t free_block_net_threshold) {
    const auto& config = _db.get<resource_limits_config_object>();
    EOS_ASSERT( free_block_cpu_threshold < config.cpu_limit_parameters.max, resource_limit_exception, "free_block_cpu_threshold must be lower maximum cpu_limit_parameters" );
    EOS_ASSERT( free_block_net_threshold < config.net_limit_parameters.max, resource_limit_exception, "free_block_net_threshold must be lower maximum net_limit_parameters" );
@@ -429,7 +429,7 @@ std::pair<int64_t, int64_t> resource_limits_manager::get_account_available_fees(
    }
 }
 
-std::pair<int64_t, int64_t> resource_limits_manager::get_account_limit_fees( const account_name& account) const {
+std::pair<int64_t, int64_t> resource_limits_manager::get_config_fee_limits( const account_name& account) const {
    const auto& fee_limits = _db.find<fee_limits_object,by_owner>( account );
    if (fee_limits == nullptr) {
       return{0, 0};
