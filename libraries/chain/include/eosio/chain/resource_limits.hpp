@@ -120,7 +120,7 @@ namespace eosio { namespace chain {
          std::pair<account_resource_limit, bool>
          get_account_net_limit_ex( const account_name& name, uint32_t greylist_limit = config::maximum_elastic_resource_multiplier, const std::optional<block_timestamp_type>& current_time={} ) const;
 
-         int64_t calculate_resource_fee(uint64_t resource_usage, uint64_t ema_resource, uint64_t free_block_resource_threshold, uint64_t max_block_resource, uint64_t cpu_fee_scaler) const;
+         int64_t calculate_resource_fee(uint64_t resource_usage, uint64_t ema_block_resource, uint64_t free_block_resource_threshold, uint64_t max_block_resource, uint64_t resource_fee_scaler) const;
          int64_t get_account_ram_usage( const account_name& name ) const;
 
          void get_account_fee_consumption( const account_name& account, int64_t& net_weight_consumption, int64_t& cpu_weight_consumption) const;

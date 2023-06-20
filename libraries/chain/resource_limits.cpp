@@ -119,8 +119,8 @@ void resource_limits_manager::initialize_account(const account_name& account, bo
    }
 
    if(_control.is_builtin_activated( builtin_protocol_feature_t::transaction_fee )){
-      const auto& fee_limits = _db.create<fee_limits_object>([&]( fee_limits_object& bf ) {
-      bf.owner = account;
+      const auto& fee_limits = _db.create<fee_limits_object>([&]( fee_limits_object& fl ) {
+      fl.owner = account;
       });
       if (auto dm_logger = _control.get_deep_mind_logger(is_trx_transient)) {
          dm_logger->on_init_account_fee_limits(fee_limits);
@@ -346,15 +346,15 @@ void resource_limits_manager::add_transaction_usage_and_fees(const flat_set<acco
                ("limit",fee_limits.account_fee_limit) );
          }
 
-         _db.modify(fee_limits, [&](fee_limits_object& bf){
+         _db.modify(fee_limits, [&](fee_limits_object& fl){
             if (cpu_fee >= 0) {
-               bf.cpu_weight_consumption += cpu_fee;
+               fl.cpu_weight_consumption += cpu_fee;
             }
             if (net_fee >= 0) {
-               bf.net_weight_consumption += net_fee;
+               fl.net_weight_consumption += net_fee;
             }
             if (auto dm_logger = _control.get_deep_mind_logger(is_trx_transient)) {
-               dm_logger->on_update_account_fee_limits(bf);
+               dm_logger->on_update_account_fee_limits(fl);
             }
          });
       }
@@ -464,13 +464,16 @@ int64_t resource_limits_manager::get_net_usage_fee_to_bill( int64_t net_usage ) 
    );
 }
 
-int64_t resource_limits_manager::calculate_resource_fee(uint64_t resource_usage, uint64_t ema_resource, uint64_t free_block_resource_threshold, uint64_t max_block_resource, uint64_t cpu_fee_scaler) const {
+int64_t resource_limits_manager::calculate_resource_fee(uint64_t resource_usage, uint64_t ema_block_resource, uint64_t free_block_resource_threshold, uint64_t max_block_resource, uint64_t resource_fee_scaler) const {
    EOS_ASSERT( ema_resource < max_block_resource, resource_limit_exception, "elastic moving average resource parameter must be smaller than max block resource parameter" );
-   if (free_block_resource_threshold >= ema_resource ) {
+
+   // Formula: resource_fee = resource_fee_scaler * (1 / (max_block_resource - ema_block_resource) - 1 / (max_block_resource - free_block_resource_threshold)) * resource_usage
+
+   if (free_block_resource_threshold >= ema_block_resource ) {
       return 0;
    }
-   auto num = (int128_t)resource_usage * cpu_fee_scaler * (ema_resource - free_block_resource_threshold);
-   auto den = (int128_t)(max_block_resource - free_block_resource_threshold) * (max_block_resource - ema_resource);
+   auto num = (int128_t)resource_usage * resource_fee_scaler * (ema_block_resource - free_block_resource_threshold);
+   auto den = (int128_t)(max_block_resource - free_block_resource_threshold) * (max_block_resource - ema_block_resource);
    return impl::downgrade_cast<int64_t>(num / den);
 }
 
@@ -544,25 +547,25 @@ void resource_limits_manager::get_account_limits( const account_name& account, i
 
 void resource_limits_manager::config_account_fee_limits(const account_name& account, int64_t tx_fee_limit, int64_t account_fee_limit, bool is_trx_transient) {
    EOS_ASSERT( tx_fee_limit >= -1, resource_limit_exception,
-              "max consumed fee must be positive or -1 (unlimited)");
+              "max consumed fee must be positive or -1 (no limit)");
    EOS_ASSERT( account_fee_limit >= -1, resource_limit_exception,
-              "max consumed fee per transaction must be positive or -1 (unlimited)");
+              "max consumed fee per transaction must be positive or -1 (no limmit)");
    const auto& fee_limits = _db.find<fee_limits_object,by_owner>( account );
    if (fee_limits == nullptr) {
-      _db.create<fee_limits_object>([&]( fee_limits_object& bf ) {
-         bf.owner = account;
-         bf.tx_fee_limit = tx_fee_limit;
-         bf.account_fee_limit = account_fee_limit;
+      _db.create<fee_limits_object>([&]( fee_limits_object& fl ) {
+         fl.owner = account;
+         fl.tx_fee_limit = tx_fee_limit;
+         fl.account_fee_limit = account_fee_limit;
          if (auto dm_logger = _control.get_deep_mind_logger(is_trx_transient)) {
-            dm_logger->on_update_account_fee_limits(bf);
+            dm_logger->on_update_account_fee_limits(fl);
          }
       });
    }else{
-      _db.modify(_db.get<fee_limits_object,by_owner>( account ), [&](auto& bf){
-         bf.tx_fee_limit = tx_fee_limit;
-         bf.account_fee_limit = account_fee_limit;
+      _db.modify(_db.get<fee_limits_object,by_owner>( account ), [&](auto& fl){
+         fl.tx_fee_limit = tx_fee_limit;
+         fl.account_fee_limit = account_fee_limit;
          if (auto dm_logger = _control.get_deep_mind_logger(is_trx_transient)) {
-            dm_logger->on_update_account_fee_limits(bf);
+            dm_logger->on_update_account_fee_limits(fl);
          }
       });
    }
@@ -571,25 +574,25 @@ void resource_limits_manager::config_account_fee_limits(const account_name& acco
 void resource_limits_manager::set_account_fee_limits( const account_name& account,int64_t net_weight_limit, int64_t cpu_weight_limit, bool is_trx_transient) {
    const auto& fee_limits = _db.find<fee_limits_object,by_owner>( account );
    if (fee_limits == nullptr) {
-      _db.create<fee_limits_object>([&]( fee_limits_object& bf ) {
-         bf.owner = account;
-         bf.net_weight_limit = net_weight_limit;
-         bf.cpu_weight_limit = cpu_weight_limit;
-         bf.net_weight_consumption = 0;
-         bf.cpu_weight_consumption = 0;
+      _db.create<fee_limits_object>([&]( fee_limits_object& fl ) {
+         fl.owner = account;
+         fl.net_weight_limit = net_weight_limit;
+         fl.cpu_weight_limit = cpu_weight_limit;
+         fl.net_weight_consumption = 0;
+         fl.cpu_weight_consumption = 0;
          // other values see default settings in the declaration
          if (auto dm_logger = _control.get_deep_mind_logger(is_trx_transient)) {
-            dm_logger->on_update_account_fee_limits(bf);
+            dm_logger->on_update_account_fee_limits(fl);
          }
       });
    }else{
-      _db.modify(_db.get<fee_limits_object,by_owner>( account ), [&](auto& bf){
-         bf.net_weight_limit = net_weight_limit;
-         bf.cpu_weight_limit = cpu_weight_limit;
-         bf.net_weight_consumption = 0;
-         bf.cpu_weight_consumption = 0;
+      _db.modify(_db.get<fee_limits_object,by_owner>( account ), [&](auto& fl){
+         fl.net_weight_limit = net_weight_limit;
+         fl.cpu_weight_limit = cpu_weight_limit;
+         fl.net_weight_consumption = 0;
+         fl.cpu_weight_consumption = 0;
          if (auto dm_logger = _control.get_deep_mind_logger(is_trx_transient)) {
-               dm_logger->on_update_account_fee_limits(bf);
+               dm_logger->on_update_account_fee_limits(fl);
          }
       });
    }
