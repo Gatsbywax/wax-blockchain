@@ -356,7 +356,7 @@ def stepSetSystemContract():
     # CRYPTO_PRIMITIVES
     retry(args.cleos + 'push action eosio activate \'["6bcb40a24e49c26d0a60513b6aeb8551d264e4717f306b81a37a5afb3b47cedc"]\' -p eosio@active')
     # TRANSACTION_FEE
-    retry(args.cleos + 'push action eosio activate \'["5ad3dd667bf9927457ebcbd9159888d3f5a58ce00492b96f5e78a95acaee6699"]\' -p eosio@active')
+    retry(args.cleos + 'push action eosio activate \'["f966d080920d1ece2e03b0818558e56917d2a2462e203498bddd92e0618996c7"]\' -p eosio@active')
     sleep(1)
 
     # install eosio.system latest version
