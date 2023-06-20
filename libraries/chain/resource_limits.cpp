@@ -465,7 +465,7 @@ int64_t resource_limits_manager::get_net_usage_fee_to_bill( int64_t net_usage ) 
 }
 
 int64_t resource_limits_manager::calculate_resource_fee(uint64_t resource_usage, uint64_t ema_block_resource, uint64_t free_block_resource_threshold, uint64_t max_block_resource, uint64_t resource_fee_scaler) const {
-   EOS_ASSERT( ema_resource < max_block_resource, resource_limit_exception, "elastic moving average resource parameter must be smaller than max block resource parameter" );
+   EOS_ASSERT( ema_block_resource < max_block_resource, resource_limit_exception, "elastic moving average resource parameter must be smaller than max block resource parameter" );
 
    // Formula: resource_fee = resource_fee_scaler * (1 / (max_block_resource - ema_block_resource) - 1 / (max_block_resource - free_block_resource_threshold)) * resource_usage
 
