@@ -97,7 +97,7 @@ namespace eosio { namespace chain {
          void set_account_fee_limits( const account_name& account,int64_t net_weight_limit, int64_t cpu_weight_limit, bool is_trx_transient);
 
          bool is_unlimited_cpu( const account_name& account ) const;
-         bool is_account_enable_charing_fee(const flat_set<account_name>& accounts);
+         bool is_account_enable_charging_fee(const flat_set<account_name>& accounts);
 
          void process_account_limit_updates();
          void process_block_usage( uint32_t block_num );

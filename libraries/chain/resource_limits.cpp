@@ -606,19 +606,19 @@ bool resource_limits_manager::is_unlimited_cpu( const account_name& account ) co
    return false;
 }
 
-bool resource_limits_manager::is_account_enable_charing_fee(const flat_set<account_name>& accounts){
-   auto is_enable_charing_fee = false;
+bool resource_limits_manager::is_account_enable_charging_fee(const flat_set<account_name>& accounts){
+   auto is_enable_charging_fee = false;
    for( const auto& account : accounts ) {
       const auto& fee_limits = _db.find<fee_limits_object,by_owner>( account );
       if (fee_limits == nullptr) {
          return false;
       }else if(fee_limits->account_fee_limit != 0 && fee_limits->tx_fee_limit != 0){
-         is_enable_charing_fee = true;
+         is_enable_charging_fee = true;
       }else{
          return false;
       }
    }
-   return is_enable_charing_fee;
+   return is_enable_charging_fee;
 }
 
 void resource_limits_manager::process_account_limit_updates() {

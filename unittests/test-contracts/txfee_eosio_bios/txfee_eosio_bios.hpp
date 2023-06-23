@@ -383,9 +383,9 @@ namespace eosio {
          void reqactivated( const eosio::checksum256& feature_digest );
 
          /**
-          * Set the fees parameters.
+          * Set the global transaction fees parameters.
           *
-          * @details Set the fees parameters.
+          * @details Set the global transaction fees parameters.
           *
           * @param cpu_fee_scaler - cpu fee scaler.
           * @param free_block_cpu_threshold - the cpu threshold to start charge fee.

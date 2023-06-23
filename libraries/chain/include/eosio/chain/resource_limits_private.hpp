@@ -346,8 +346,8 @@ namespace eosio { namespace chain { namespace resource_limits {
    /**
     * This object tracks the fee limits of an account. 
     * Note: 
-    * - Setting tx_fee_limit to -1 indicates there is no limit fee by transaction.
-    * - Setting account_fee_limit to -1 indicates there is no limit fee by account.
+    * - Setting tx_fee_limit to -1 indicates there is no fee limit by transaction.
+    * - Setting account_fee_limit to -1 indicates there is no accumulated fees limit by account.
     */
    struct fee_limits_object : public chainbase::object<fee_limits_object_type, fee_limits_object> {
 

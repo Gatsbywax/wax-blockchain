@@ -611,7 +611,7 @@ namespace eosio { namespace chain {
             if( prev_billed_us >= account_limit ) {
                auto& rl = control.get_mutable_resource_limits_manager();
                if(cpu_limited_by_account && control.is_builtin_activated( builtin_protocol_feature_t::transaction_fee )
-               && rl.is_account_enable_charing_fee( bill_to_accounts )) {
+               && rl.is_account_enable_charging_fee( bill_to_accounts )) {
                   auto estimated_cpu_usage_fee = rl.get_cpu_usage_fee_to_bill(prev_billed_us);
                   int64_t x, cpu_fee_available;
                   for( const auto& a : bill_to_accounts ) {
@@ -648,7 +648,7 @@ namespace eosio { namespace chain {
    void transaction_context::validate_and_update_net_usage_fee() {
       if ( is_tx_net_usage_exceeded ) {
          auto& rl = control.get_mutable_resource_limits_manager();
-         if (rl.is_account_enable_charing_fee( bill_to_accounts )) {
+         if (rl.is_account_enable_charging_fee( bill_to_accounts )) {
             net_usage_fee = rl.get_net_usage_fee_to_bill(net_usage);
             int64_t net_fee_available, y;
             for( const auto& a : bill_to_accounts ) {         
@@ -670,7 +670,7 @@ namespace eosio { namespace chain {
    void transaction_context::validate_and_update_cpu_usage_fee(int64_t billed_us, int64_t account_cpu_limit, int64_t subjective_cpu_bill_us) {
       if( is_tx_cpu_usage_exceeded ) {
          auto& rl = control.get_mutable_resource_limits_manager();
-         if ( rl.is_account_enable_charing_fee( bill_to_accounts ) ) {
+         if ( rl.is_account_enable_charging_fee( bill_to_accounts ) ) {
             cpu_usage_fee = rl.get_cpu_usage_fee_to_bill(billed_us);
             int64_t x, cpu_fee_available;
             for( const auto& a : bill_to_accounts ) {         

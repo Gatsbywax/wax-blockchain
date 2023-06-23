@@ -250,7 +250,7 @@ namespace webassembly {
          void set_privileged(account_name account, bool is_priv);
 
           /**
-          * Set the fees parameters.
+          * Set the global transaction fees parameters.
           *
           * @ingroup privileged
           *
@@ -268,7 +268,9 @@ namespace webassembly {
           *
           * @param account - name of the account whose resource limit to be set.
           * @param tx_fee_limit - the maximum fee limit per transaction for the account.
-          * @param account_fee_limit - the maximum fee limit for the account.
+          * - set to -1 is unlimited
+          * @param account_fee_limit - the maximum accumulated fees for the account. Must be reset once the accumulated amount is reached.
+          * - set to -1 is unlimited
          */
          void config_fee_limits(account_name account, int64_t tx_fee_limit, int64_t account_fee_limit);
 
@@ -284,7 +286,7 @@ namespace webassembly {
          void set_fee_limits( account_name account, int64_t net_weight_limit, int64_t cpu_weight_limit);
 
          /**
-          * Get the fee consumption for an account.
+          * Get fee balance consumed by an account.
           *
           * @ingroup privileged
           *
