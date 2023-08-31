@@ -1,0 +1,228 @@
+<html>
+   <head> 
+      <meta name="viewport" content="width=device-width, initial-scale=1"> 
+      <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.1/dist/chart.umd.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/jsbi@4.3.0/dist/jsbi-umd.min.js"></script>
+      <script type="text/javascript">
+    
+        var cpu_fee_scaler = 500_000_000;
+        var free_block_cpu_threshold = 0;
+        const default_max_block_cpu_usage = 200_000;
+        var resource_usage = 100;
+        var myChart;
+        function getRandomColor() {
+          var letters = '0123456789ABCDEF';
+          var color = '#';
+          for (var i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+          }
+          return color;
+        }
+        function calculateFee(
+            resource_usage,
+            ema_resource,
+            free_block_resource_threshold,
+            max_block_resource,
+            cpu_fee_scaler,
+            precision
+            ){
+             // return  cpu_fee_scaler * tx_cpu_consumption*((max_block_cpu - free_block_cpu_threshold) - (max_block_cpu - ema_block_cpu)) / ((max_block_cpu - free_block_cpu_threshold) * (max_block_cpu - ema_block_cpu));
+            let num1 = JSBI.multiply(
+                JSBI.multiply(JSBI.BigInt(resource_usage), JSBI.BigInt(cpu_fee_scaler)),
+                JSBI.BigInt(precision)
+              );
+            let num2 = JSBI.subtract(
+                JSBI.BigInt(max_block_resource - free_block_resource_threshold),
+                JSBI.BigInt(max_block_resource - ema_resource)
+              );
+            let den = JSBI.multiply(
+                JSBI.BigInt(max_block_resource - free_block_resource_threshold),
+                JSBI.BigInt(max_block_resource - ema_resource)
+              );
+            let fee = JSBI.divide(JSBI.multiply(num1, num2), den);
+            return Math.max(JSBI.toNumber(fee) / 100000000, 0);
+        }
+        let points = [];
+        window.onload=function(){
+          setChart();
+        };
+
+        function updateDataSet(data){
+          for (var i = 0; i < data.datasets.length; i++) {
+            for (var j = 0; j < data.labels.length; j++) {
+              var fct = data.datasets[i].function,
+                x = data.labels[j],
+                y = fct(x);
+                if (y >= 0){
+                  data.datasets[i].data.push(y);
+                }else{
+                  data.datasets[i].data.push(null);
+                }
+                // console.log(x, y);
+            }
+          }
+        }
+        function setChart(){
+          points = [];
+          let percent_max_block_cpu_to_graph = document.getElementById("input_percent_max_block_cpu_to_graph").value;
+          percent_max_block_cpu_to_graph = Math.max(percent_max_block_cpu_to_graph, 0);
+          percent_max_block_cpu_to_graph = Math.min(percent_max_block_cpu_to_graph, 100);
+          percent_max_block_cpu_to_graph /= 100
+          for (let i = 0; i < default_max_block_cpu_usage * percent_max_block_cpu_to_graph; i += 1000) {
+              points.push(i);
+          }
+          resource_usage = document.getElementById("input_resource_usage").value;
+          free_block_cpu_threshold = document.getElementById("input_free_block_cpu_threshold").value;
+          cpu_fee_scaler = document.getElementById("input_cpu_fee_scaler").value;
+          console.log("resource_usage", resource_usage);
+          console.log("free_block_cpu_threshold", free_block_cpu_threshold);
+          console.log("cpu_fee_scaler", cpu_fee_scaler);
+          var data = {
+            labels: points,
+            datasets: [{
+              label: "CPU Fee",
+              function: function(x) {
+                  return calculateFee(
+                    resource_usage,
+                    x,
+                    free_block_cpu_threshold,
+                    default_max_block_cpu_usage,
+                    cpu_fee_scaler,
+                    2 ^ 8
+                  )
+              },
+              borderColor: getRandomColor(),
+              data: [],
+              fill: false
+            }]
+          };
+          updateDataSet(data);
+          if (!myChart){
+            var ctx = document.getElementById("myChart");
+            var myBarChart = new Chart(ctx, {
+              type: 'line',
+              data: data,
+              options: {
+                title: {
+                  display: true
+                },
+                legend: {
+                  position: 'bottom'
+                },
+                scales: {
+                  x: {
+                    ticks: {
+                      callback: index => `${points[index] / 1000} ms`
+                    },
+                    title: {
+                      text: 'Avg Block CPU Consumed',
+                      align: 'center',
+                      display: true,
+                      color: 'red',
+                      font: {
+                        size: 14
+                      }
+                    }
+                  },
+                  y: {
+                    ticks: {
+                      callback: value => `${value} WAX`
+                    },
+                    title: {
+                      text: 'Transaction Fee',
+                      align: 'center',
+                      display: true,
+                      color: 'green',
+                      font: {
+                        size: 14
+                      }
+                    }
+                  }
+                },
+                plugins: {
+                  zoom: {
+                    zoom: {
+                      wheel: {
+                        enabled: true,
+                        speed: 0.01,
+                      },
+                      pinch: {
+                        enabled: true
+                      },
+                      mode: 'x'
+                    },
+                    pan: {
+                      enabled: true,
+                      mode: 'x',
+                    },
+                  }
+                }
+              }
+            });
+            myChart = myBarChart;
+          }else{
+            myChart.config.data = data;
+            myChart.update();
+          }
+        }
+        function addChart(){
+          resource_usage = document.getElementById("input_resource_usage").value;
+          free_block_cpu_threshold = document.getElementById("input_free_block_cpu_threshold").value;
+          cpu_fee_scaler = document.getElementById("input_cpu_fee_scaler").value;
+          console.log("resource_usage", resource_usage);
+          console.log("free_block_cpu_threshold", free_block_cpu_threshold);
+          console.log("cpu_fee_scaler", cpu_fee_scaler);
+          var data = {
+            labels: points,
+            datasets: [{
+              label: "CPU Fee",
+              function: function(x) {
+                  return calculateFee(
+                    resource_usage,
+                    x,
+                    free_block_cpu_threshold,
+                    default_max_block_cpu_usage,
+                    cpu_fee_scaler,
+                    2 ^ 8
+                  )
+              },
+              borderColor: getRandomColor(),
+              data: [],
+              fill: false
+            }]
+          };
+          updateDataSet(data);
+          if(myChart){
+            myChart.config.data.datasets.push(data.datasets[0]);
+            myChart.update();
+          }
+        }
+        function resetZoom(){
+          if(myChart){
+            myChart.resetZoom();
+          }
+        }
+      </script> 
+    </head> 
+   
+   <body style="padding: 20px;">
+      <p>
+        <b>This graph expresses the WAX fee paid per a typical transaction as a function of current block usage, which is represented by the current average CPU consumed in a block.</b><br>
+        <b>Note: Fees are only applied once a user has used up their staking bandwidth for Net or CPU</b><br>
+        Drag the graph. Use the scroll wheel to zoom in.
+      </p>
+      <canvas id="myChart"></canvas>  
+​
+      <form id="myForm">
+        Typical Transaction CPU Consumed (us): <input type="number" name="resource_usage" id="input_resource_usage" value="100"><br>
+        cpu_fee_scaler (WAX): <input type="number" name="cpu_fee_scaler" id="input_cpu_fee_scaler" value="500000000"><br><br>
+        <div hidden>free_block_cpu_threshold (us): <input type="number" name="free_block_cpu_threshold" id="input_free_block_cpu_threshold" value="0"><br><br></div>
+        <div hidden>% of Max Allowed Block CPU to graph: <input type="number" name="percent_max_block_cpu_to_graph" id="input_percent_max_block_cpu_to_graph" value="100"><br><br></div>
+        <input type="button" onclick="setChart()" value="Reload">
+        <input type="button" onclick="addChart()" value="Add">
+        <input type="button" onclick="resetZoom()" value="Zoom Reset">
+      </form>
+   </body>
+</html>
