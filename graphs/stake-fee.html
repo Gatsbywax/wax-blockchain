@@ -35,21 +35,21 @@
 
   <div class="inputs-wrapper">
       <div class="input-group">
-          Hours: <input class="input-field" type="number" id="inputHours" value="120"><br>
           Max Block CPU: <input class="input-field" type="number" id="inputMaxBlockCPU" value="200000"><br>
           EMA Block CPU: <input class="input-field" type="number" id="inputEMABlockCPU" value="20544"><br>
-          Apply Transaction Fees: <input type="checkbox" id="applyTransactionFees" checked>
+          Target Block CPU Percent: <input class="input-field" type="number" id="inputTargetBlockCPUPct" value="25"><br>
+          Total CPU Staked All Users: <input class="input-field" type="number" id="inputTotalStakedAllUsers" value="380494437">
       </div>
       <div class="input-group">
           Free Block CPU Threshold: <input class="input-field" type="number" id="inputFreeBlockCPUThreshold" value="0"><br>
           CPU Fee Scaler: <input class="input-field" type="number" id="inputCPUFeeScaler" value="10"><br>
-          Tx CPU Consumption: <input class="input-field" type="number" id="inputTxCPUConsumption" value="336"><br>
-          Total CPU Staked All Users: <input class="input-field" type="number" id="inputTotalStakedAllUsers" value="380494437">
+          Apply Transaction Fees: <input type="checkbox" id="applyTransactionFees" checked>
       </div>
       <div class="input-group">
-          Max Elastic Multiplier: <input class="input-field" type="number" id="inputElasticMultiplier" value="1000"><br>
-          Txs per User per Hour: <input class="input-field" type="number" id="inputTxPerUserPerHour" value="2"><br>
-          Starting WAX Balance: <input class="input-field" type="number" id="inputStartingWAXBalance" value="553">
+          User Txs per Hour: <input class="input-field" type="number" id="inputTxPerUserPerHour" value="2"><br>
+          Starting WAX Balance: <input class="input-field" type="number" id="inputStartingWAXBalance" value="553"><br>
+          Tx CPU Consumption: <input class="input-field" type="number" id="inputTxCPUConsumption" value="336"><br>
+          Hours to Sample: <input class="input-field" type="number" id="inputHours" value="120"><br>
       </div>
   </div>
 </div>
@@ -65,16 +65,26 @@
     const max_block_cpu = parseFloat(document.getElementById("inputMaxBlockCPU").value);
     const free_block_cpu_threshold = parseFloat(document.getElementById("inputFreeBlockCPUThreshold").value);
     const cpu_fee_scaler = parseFloat(document.getElementById("inputCPUFeeScaler").value);
-    const ema_block_cpu = parseFloat(document.getElementById("inputEMABlockCPU").value);
+    let ema_block_cpu = parseFloat(document.getElementById("inputEMABlockCPU").value);
+    const target_block_cpu_usage_pct = parseFloat(document.getElementById("inputTargetBlockCPUPct").value);
     const tx_cpu_consumption = parseFloat(document.getElementById("inputTxCPUConsumption").value);
-    const elastic_multiplier = parseFloat(document.getElementById("inputElasticMultiplier").value);
-    const txs_per_user_per_hour = parseFloat(document.getElementById("inputTxPerUserPerHour").value);
+    let txs_per_user_per_hour = parseFloat(document.getElementById("inputTxPerUserPerHour").value);
     const totalStakedAllUsers = parseFloat(document.getElementById("inputTotalStakedAllUsers").value);
     const applyFees = document.getElementById("applyTransactionFees").checked;
     let wax_balance = parseFloat(document.getElementById("inputStartingWAXBalance").value);
 
     const account_cpu_usage_average_window = 172800;  // your resources are actually extrapolated over a 24 hour window which decays at the same rate
 
+
+    let user_added_cpu = 2 * txs_per_user_per_hour * tx_cpu_consumption / 3600;
+    user_added_cpu = Math.min(ema_block_cpu + user_added_cpu, max_block_cpu) - ema_block_cpu;
+    txs_per_user_per_hour = user_added_cpu * 3600 / (2 * tx_cpu_consumption);
+    ema_block_cpu += user_added_cpu;
+    const targetCPU = max_block_cpu * target_block_cpu_usage_pct / 100;
+    const elasticMultiplierToOneCPU = targetCPU * 1.1;
+    let elastic_multiplier = ema_block_cpu <= targetCPU ?
+      1000 : ema_block_cpu > elasticMultiplierToOneCPU ?
+      1 : (1 - (ema_block_cpu - targetCPU) / (elasticMultiplierToOneCPU - targetCPU)) * 999 + 1;
 
     function max_user_cpu() {
       const m = elastic_multiplier * account_cpu_usage_average_window * max_block_cpu * wax_balance / totalStakedAllUsers;
