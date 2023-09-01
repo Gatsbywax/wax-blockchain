@@ -22,35 +22,42 @@
             max-height: 80vh;
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
 </head>
 <body>
 
-<canvas id="cpuAllotmentChart" width="800" height="400"></canvas>
+<button id="exportToPNG">Export to PNG</button>
+<button id="exportToJPEG">Export to JPEG</button>
+<button id="exportBtn">Export to PDF</button>
+<div id="exportContainer">
+  <canvas id="cpuAllotmentChart" width="800" height="400"></canvas>
 
-<div class="inputs-wrapper">
-    <div class="input-group">
-        Hours: <input class="input-field" type="number" id="inputHours" value="120"><br>
-        Max Block CPU: <input class="input-field" type="number" id="inputMaxBlockCPU" value="200000"><br>
-        EMA Block CPU: <input class="input-field" type="number" id="inputEMABlockCPU" value="20544"><br>
-        Apply Transaction Fees: <input type="checkbox" id="applyTransactionFees" checked>
-    </div>
-    <div class="input-group">
-        Free Block CPU Threshold: <input class="input-field" type="number" id="inputFreeBlockCPUThreshold" value="0"><br>
-        CPU Fee Scaler: <input class="input-field" type="number" id="inputCPUFeeScaler" value="10"><br>
-        Tx CPU Consumption: <input class="input-field" type="number" id="inputTxCPUConsumption" value="336"><br>
-        Total CPU Staked All Users: <input class="input-field" type="number" id="inputTotalStakedAllUsers" value="380494437">
-    </div>
-    <div class="input-group">
-        Max Elastic Multiplier: <input class="input-field" type="number" id="inputElasticMultiplier" value="1000"><br>
-        Txs per User per Hour: <input class="input-field" type="number" id="inputTxPerUserPerHour" value="2"><br>
-        Starting WAX Balance: <input class="input-field" type="number" id="inputStartingWAXBalance" value="553">
-    </div>
+  <div class="inputs-wrapper">
+      <div class="input-group">
+          Hours: <input class="input-field" type="number" id="inputHours" value="120"><br>
+          Max Block CPU: <input class="input-field" type="number" id="inputMaxBlockCPU" value="200000"><br>
+          EMA Block CPU: <input class="input-field" type="number" id="inputEMABlockCPU" value="20544"><br>
+          Apply Transaction Fees: <input type="checkbox" id="applyTransactionFees" checked>
+      </div>
+      <div class="input-group">
+          Free Block CPU Threshold: <input class="input-field" type="number" id="inputFreeBlockCPUThreshold" value="0"><br>
+          CPU Fee Scaler: <input class="input-field" type="number" id="inputCPUFeeScaler" value="10"><br>
+          Tx CPU Consumption: <input class="input-field" type="number" id="inputTxCPUConsumption" value="336"><br>
+          Total CPU Staked All Users: <input class="input-field" type="number" id="inputTotalStakedAllUsers" value="380494437">
+      </div>
+      <div class="input-group">
+          Max Elastic Multiplier: <input class="input-field" type="number" id="inputElasticMultiplier" value="1000"><br>
+          Txs per User per Hour: <input class="input-field" type="number" id="inputTxPerUserPerHour" value="2"><br>
+          Starting WAX Balance: <input class="input-field" type="number" id="inputStartingWAXBalance" value="553">
+      </div>
+  </div>
 </div>
-
-<canvas id="cpuAllotmentChart"></canvas>
+<!-- <canvas id="cpuAllotmentChart"></canvas> -->
 
 <script>
   let chart;
+  const jsPDF = window.jspdf.jsPDF;
 
   function updateChart() {
     // Fetch values from UI
@@ -157,6 +164,62 @@
         }
     });
   }
+
+  async function exportToPDF() {
+      const chartContainer = document.getElementById('exportContainer');
+
+      const canvas = await html2canvas(chartContainer);
+      const imgData = canvas.toDataURL('image/png');
+      
+      const pdf = new jsPDF({
+        orientation: "landscape",
+      });
+      pdf.addImage(imgData, 'PNG', 10, 10);
+      
+      // Add the parameters to the PDF
+      const inputFields = document.querySelectorAll('.input-field');
+      let yOffset = canvas.height * 0.75;  // Adjust based on the size of the chart and your preference
+
+      inputFields.forEach(field => {
+          const label = field.previousSibling.textContent.trim();
+          const value = field.value;
+          pdf.text(`${label}: ${value}`, 10, yOffset);
+          yOffset += 7;  // Adjust spacing as needed
+      });
+
+      pdf.save("chart-export.pdf");
+  }
+
+  async function exportImage(format) {
+      const chartContainer = document.getElementById('exportContainer');
+
+      const canvas = await html2canvas(chartContainer);
+
+      if (format === 'png') {
+          const imgData = canvas.toDataURL('image/png');
+          downloadImage(imgData, 'chart-export.png');
+      } else if (format === 'jpeg') {
+          const imgData = canvas.toDataURL('image/jpeg');
+          downloadImage(imgData, 'chart-export.jpeg');
+      }
+  }
+
+  function downloadImage(data, filename) {
+      let link = document.createElement('a');
+      link.href = data;
+      link.download = filename;
+      link.click();
+  }
+
+  document.getElementById("exportToPNG").addEventListener("click", function() {
+      exportImage('png');
+  });
+
+  document.getElementById("exportToJPEG").addEventListener("click", function() {
+      exportImage('jpeg');
+  });
+
+  document.getElementById("exportBtn").addEventListener("click", exportToPDF);
 
   // Attach event listener to all input elements
   const inputFields = document.querySelectorAll('.input-field');

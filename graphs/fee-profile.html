@@ -5,6 +5,30 @@
       <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
       <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/jsbi@4.3.0/dist/jsbi-umd.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
+    </head> 
+   
+   <body style="padding: 20px;">
+     <button id="exportToPNG">Export to PNG</button>
+     <button id="exportToJPEG">Export to JPEG</button>
+     <div id="exportContainer">
+       <p>
+         <b>This graph expresses the WAX fee paid per a typical transaction as a function of current block usage, which is represented by the current average CPU consumed in a block.</b><br>
+         <b>Note: Fees are only applied once a user has used up their staking bandwidth for Net or CPU</b><br>
+          Drag the graph. Use the scroll wheel to zoom in.
+        </p>
+        <canvas id="myChart"></canvas>  
+  ​
+        <form id="myForm">
+          Typical Transaction CPU Consumed (us): <input type="number" name="resource_usage" id="input_resource_usage" value="100"><br>
+          cpu_fee_scaler (WAX): <input type="number" name="cpu_fee_scaler" id="input_cpu_fee_scaler" value="500000000"><br><br>
+          <div hidden>free_block_cpu_threshold (us): <input type="number" name="free_block_cpu_threshold" id="input_free_block_cpu_threshold" value="0"><br><br></div>
+          <div hidden>% of Max Allowed Block CPU to graph: <input type="number" name="percent_max_block_cpu_to_graph" id="input_percent_max_block_cpu_to_graph" value="100"><br><br></div>
+          <input type="button" onclick="setChart()" value="Reload">
+          <input type="button" onclick="addChart()" value="Add">
+          <input type="button" onclick="resetZoom()" value="Zoom Reset">
+        </form>
+      </div>
       <script type="text/javascript">
     
         var cpu_fee_scaler = 500_000_000;
@@ -204,25 +228,35 @@
             myChart.resetZoom();
           }
         }
+        
+        async function exportImage(format) {
+            const chartContainer = document.getElementById('exportContainer');
+
+            const canvas = await html2canvas(chartContainer);
+
+            if (format === 'png') {
+                const imgData = canvas.toDataURL('image/png');
+                downloadImage(imgData, 'chart-export.png');
+            } else if (format === 'jpeg') {
+                const imgData = canvas.toDataURL('image/jpeg');
+                downloadImage(imgData, 'chart-export.jpeg');
+            }
+        }
+
+        function downloadImage(data, filename) {
+            let link = document.createElement('a');
+            link.href = data;
+            link.download = filename;
+            link.click();
+        }
+
+        document.getElementById("exportToPNG").addEventListener("click", function() {
+            exportImage('png');
+        });
+
+        document.getElementById("exportToJPEG").addEventListener("click", function() {
+            exportImage('jpeg');
+        });
       </script> 
-    </head> 
-   
-   <body style="padding: 20px;">
-      <p>
-        <b>This graph expresses the WAX fee paid per a typical transaction as a function of current block usage, which is represented by the current average CPU consumed in a block.</b><br>
-        <b>Note: Fees are only applied once a user has used up their staking bandwidth for Net or CPU</b><br>
-        Drag the graph. Use the scroll wheel to zoom in.
-      </p>
-      <canvas id="myChart"></canvas>  
-​
-      <form id="myForm">
-        Typical Transaction CPU Consumed (us): <input type="number" name="resource_usage" id="input_resource_usage" value="100"><br>
-        cpu_fee_scaler (WAX): <input type="number" name="cpu_fee_scaler" id="input_cpu_fee_scaler" value="500000000"><br><br>
-        <div hidden>free_block_cpu_threshold (us): <input type="number" name="free_block_cpu_threshold" id="input_free_block_cpu_threshold" value="0"><br><br></div>
-        <div hidden>% of Max Allowed Block CPU to graph: <input type="number" name="percent_max_block_cpu_to_graph" id="input_percent_max_block_cpu_to_graph" value="100"><br><br></div>
-        <input type="button" onclick="setChart()" value="Reload">
-        <input type="button" onclick="addChart()" value="Add">
-        <input type="button" onclick="resetZoom()" value="Zoom Reset">
-      </form>
    </body>
 </html>
