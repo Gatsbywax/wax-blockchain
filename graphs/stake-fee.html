@@ -73,7 +73,7 @@
     const applyFees = document.getElementById("applyTransactionFees").checked;
     let wax_balance = parseFloat(document.getElementById("inputStartingWAXBalance").value);
 
-    const account_cpu_usage_average_window = 172800;  // your resources are actually extrapolated over a 24 hour window which decays at the same rate
+    const account_cpu_usage_average_window = 172800;  // your resources are actually extrapolated over a 24 hour window which decays at the same rate. This is the number of blocks in 24 hours
 
 
     let user_added_cpu = 2 * txs_per_user_per_hour * tx_cpu_consumption / 3600;
@@ -81,11 +81,15 @@
     txs_per_user_per_hour = Math.round(user_added_cpu * 3600 / (2 * tx_cpu_consumption));
     ema_block_cpu += user_added_cpu;
     const targetCPU = max_block_cpu * target_block_cpu_usage_pct / 10000;
+    
+    /////////// APPROXIMATION for the elastic multiplier ////////////
     const elasticMultiplierToOneCPU = targetCPU * 1.1;
     let elastic_multiplier = ema_block_cpu <= targetCPU ?
       1000 : ema_block_cpu > elasticMultiplierToOneCPU ?
       1 : (1 - (ema_block_cpu - targetCPU) / (elasticMultiplierToOneCPU - targetCPU)) * 999 + 1;
+  
     // console.log(ema_block_cpu, user_added_cpu, targetCPU, elastic_multiplier, txs_per_user_per_hour);
+    
     function max_user_cpu() {
       const m = elastic_multiplier * account_cpu_usage_average_window * max_block_cpu * wax_balance / totalStakedAllUsers;
       return m;
