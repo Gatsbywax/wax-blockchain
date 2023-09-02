@@ -25,7 +25,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
 </head>
-<body>
+<body onload="setInputValuesFromURL()">
 
 <button id="exportToPNG">Export to PNG</button>
 <button id="exportToJPEG">Export to JPEG</button>
@@ -37,17 +37,17 @@
       <div class="input-group">
           Max Block CPU: <input class="input-field" type="number" id="inputMaxBlockCPU" value="200000"><br>
           EMA Block CPU: <input class="input-field" type="number" id="inputEMABlockCPU" value="20544"><br>
-          Target Block CPU Percent: <input class="input-field" type="number" id="inputTargetBlockCPUPct" value="25"><br>
+          Target Block CPU Percent (100=1%): <input class="input-field" type="number" id="inputTargetBlockCPUPct" value="2500"><br>
           Total CPU Staked All Users: <input class="input-field" type="number" id="inputTotalStakedAllUsers" value="380494437">
       </div>
       <div class="input-group">
-          Free Block CPU Threshold: <input class="input-field" type="number" id="inputFreeBlockCPUThreshold" value="0"><br>
+          <div hidden>Free Block CPU Threshold: <input class="input-field" type="number" id="inputFreeBlockCPUThreshold" value="0"><br></div>
           CPU Fee Scaler: <input class="input-field" type="number" id="inputCPUFeeScaler" value="10"><br>
           Apply Transaction Fees: <input type="checkbox" id="applyTransactionFees" checked>
       </div>
       <div class="input-group">
           User Txs per Hour: <input class="input-field" type="number" id="inputTxPerUserPerHour" value="2"><br>
-          Starting WAX Balance: <input class="input-field" type="number" id="inputStartingWAXBalance" value="553"><br>
+          Starting User WAX Staked: <input class="input-field" type="number" id="inputStartingWAXBalance" value="553"><br>
           Tx CPU Consumption: <input class="input-field" type="number" id="inputTxCPUConsumption" value="336"><br>
           Hours to Sample: <input class="input-field" type="number" id="inputHours" value="120"><br>
       </div>
@@ -80,7 +80,7 @@
     user_added_cpu = Math.min(ema_block_cpu + user_added_cpu, max_block_cpu) - ema_block_cpu;
     txs_per_user_per_hour = Math.round(user_added_cpu * 3600 / (2 * tx_cpu_consumption));
     ema_block_cpu += user_added_cpu;
-    const targetCPU = max_block_cpu * target_block_cpu_usage_pct / 100;
+    const targetCPU = max_block_cpu * target_block_cpu_usage_pct / 10000;
     const elasticMultiplierToOneCPU = targetCPU * 1.1;
     let elastic_multiplier = ema_block_cpu <= targetCPU ?
       1000 : ema_block_cpu > elasticMultiplierToOneCPU ?
@@ -173,6 +173,26 @@
             }
         }
     });
+  }
+
+  function setInputValuesFromURL() {
+      // Get URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      
+      // Loop through each input and see if there's a matching URL parameter to set its value
+      const inputFields = document.querySelectorAll('.input-field');
+      inputFields.forEach(field => {
+          const paramValue = urlParams.get(field.id);
+          if (paramValue !== null) {
+              field.value = paramValue;
+          }
+      });
+
+      // Handle the checkbox
+      const applyFees = urlParams.get('applyTransactionFees');
+      if (applyFees !== null) {
+          document.getElementById("applyTransactionFees").checked = applyFees === 'true';
+      }
   }
 
   async function exportToPDF() {
