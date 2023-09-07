@@ -93,7 +93,7 @@ And finally,
   * **fee** is the final fee charged for this particular action
 
 ### Intuition diagram for fee function profile
-![Fee Function](./images/3-fee-function.png)
+![Fee Function](./images/3-fee-function.png)  
 This [spreadsheet](https://docs.google.com/spreadsheets/d/1VEmN37_BwFeNmm6TgAmjlNUPLtwnfm0_CyEPaby2bfg/edit#gid=1611017018) also models the fee function
 
 ## Code Changes
@@ -168,13 +168,13 @@ Each graph represents two lines plotted against time (in hours) x-axis spanning 
 
 #### Base Case
 ![Base Case](./images/6-fee-analysis-base-case1.png)  
-[Diagram here](../graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=20544&inputTargetBlockCPUPct=2500&inputTxCPUConsumption=336&inputTxPerUserPerHour=2&inputTotalStakedAllUsers=380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
+Online Diagram at [here](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/tokenomics-graphs/graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=20544&inputTargetBlockCPUPct=2500&inputTxCPUConsumption=336&inputTxPerUserPerHour=2&inputTotalStakedAllUsers=380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
 
 This is the current situation with a typical account and chain load. In this regime a user with only 553 WAX staked can execute 2txs/hr indefinitely.
 
 #### Base Case, 67% EMA
 ![Base Case, 67% EMA](./images/7-fee-analysis-base-case2.png)  
-[Diagram here](../graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=120544&inputTargetBlockCPUPct=2500&inputTxCPUConsumption=336&inputTxPerUserPerHour=2&inputTotalStakedAllUsers=380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
+Online Diagram at [here](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/tokenomics-graphs/graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=120544&inputTargetBlockCPUPct=2500&inputTxCPUConsumption=336&inputTxPerUserPerHour=2&inputTotalStakedAllUsers=380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
 
   * Adjustments
     * Chain load (EMA Block CPU) is increased to 67% max capacity
@@ -183,7 +183,7 @@ This is the current situation with a typical account and chain load. In this reg
 
 #### Base Case, 20 txs/hr
 ![Base Case, 20 txs/hr](./images/8-fee-analysis-base-case3.png)  
-[Diagram here](../graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=20544&inputTargetBlockCPUPct=2500&inputTxCPUConsumption=336&inputTxPerUserPerHour=20&inputTotalStakedAllUsers=380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
+Online Diagram at [here](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/tokenomics-graphs/graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=20544&inputTargetBlockCPUPct=2500&inputTxCPUConsumption=336&inputTxPerUserPerHour=20&inputTotalStakedAllUsers=380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
 
   * Adjustments
     * Typical account executes 20 tx/hr
@@ -192,7 +192,7 @@ This is the current situation with a typical account and chain load. In this reg
 
 #### Base Case, 67% EMA, 20 txs/hr
 ![Base Case, 67% EMA, 20 txs/hr](./images/9-fee-analysis-base-case4.png) 
-[Diagram here](../graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=120544&inputTargetBlockCPUPct=2500&inputTxCPUConsumption=336&inputTxPerUserPerHour=20&inputTotalStakedAllUsers=380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
+Online Diagram at [here](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/tokenomics-graphs/graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=120544&inputTargetBlockCPUPct=2500&inputTxCPUConsumption=336&inputTxPerUserPerHour=20&inputTotalStakedAllUsers=380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
 
   * Adjustments
     * Chain load (EMA Block CPU) is increased to 67% max capacity
@@ -202,7 +202,7 @@ This is the current situation with a typical account and chain load. In this reg
 
 #### Base Case, +1B Stake
 ![Base Case, +1B Stake](./images/10-fee-analysis-base-case5.png) 
-[Diagram here](../graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=20544&inputTargetBlockCPUPct=2500&inputTxCPUConsumption=336&inputTxPerUserPerHour=2&inputTotalStakedAllUsers=1380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
+Online Diagram at [here](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/tokenomics-graphs/graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=20544&inputTargetBlockCPUPct=2500&inputTxCPUConsumption=336&inputTxPerUserPerHour=2&inputTotalStakedAllUsers=1380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
 
   * Adjustments
     * Global CPU stake is increased by 1 billion WAX to 1380494437 WAX
@@ -211,7 +211,7 @@ This is the current situation with a typical account and chain load. In this reg
 
 #### Base Case, 67% EMA, +1B Stake
 ![Base Case, 67% EMA, +1B Stake](./images/11-fee-analysis-base-case6.png) 
-[Diagram here](../graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=120544&inputTargetBlockCPUPct=2500&inputTxCPUConsumption=336&inputTxPerUserPerHour=2&inputTotalStakedAllUsers=1380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
+Online Diagram at [here](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/tokenomics-graphs/graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=120544&inputTargetBlockCPUPct=2500&inputTxCPUConsumption=336&inputTxPerUserPerHour=2&inputTotalStakedAllUsers=1380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
 
   * Adjustments
     * Global CPU stake is increased by 1 billion WAX to 1380494437 WAX
@@ -221,7 +221,7 @@ This is the current situation with a typical account and chain load. In this reg
 
 #### Base Case, 20 txs/hr, +1B Stake
 ![Base Case, 20 txs/hr, +1B Stake](./images/12-fee-analysis-base-case7.png) 
-[Diagram here](../graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=20544&inputTargetBlockCPUPct=2500&inputTxCPUConsumption=336&inputTxPerUserPerHour=20&inputTotalStakedAllUsers=1380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
+Online Diagram at [here](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/tokenomics-graphs/graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=20544&inputTargetBlockCPUPct=2500&inputTxCPUConsumption=336&inputTxPerUserPerHour=20&inputTotalStakedAllUsers=1380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
 
   * Adjustments
     * Global CPU stake is increased by 1 billion WAX to 1380494437 WAX
@@ -231,7 +231,7 @@ This is the current situation with a typical account and chain load. In this reg
 
 #### Base Case, 67% EMA, 20 txs/hr, 1B Stake
 ![Base Case, 67% EMA, 20 txs/hr, 1B Stake](./images/13-fee-analysis-base-case8.png) 
-[Diagram here](../graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=120544&inputTargetBlockCPUPct=2500&inputTxCPUConsumption=336&inputTxPerUserPerHour=20&inputTotalStakedAllUsers=1380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
+Online Diagram at [here](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/tokenomics-graphs/graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=120544&inputTargetBlockCPUPct=2500&inputTxCPUConsumption=336&inputTxPerUserPerHour=20&inputTotalStakedAllUsers=1380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
 
   * Adjustments
     * Global CPU stake is increased by 1 billion WAX to 1380494437 WAX
@@ -242,7 +242,7 @@ This is the current situation with a typical account and chain load. In this reg
 
 #### EOS Case
 ![EOS Case](./images/14-fee-analysis-eos-case1.png) 
-[Diagram here](../graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=20544&inputTargetBlockCPUPct=10&inputTxCPUConsumption=336&inputTxPerUserPerHour=2&inputTotalStakedAllUsers=380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
+Online Diagram at [here](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/tokenomics-graphs/graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=20544&inputTargetBlockCPUPct=10&inputTxCPUConsumption=336&inputTxPerUserPerHour=2&inputTotalStakedAllUsers=380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
 
 This is called the EOS case as it mimics their chain settings for block CPU targets and consequently the elastic multiplier effect, which is effectively eliminated on EOS.
   * Adjustments
@@ -252,7 +252,7 @@ This is called the EOS case as it mimics their chain settings for block CPU targ
 
 #### EOS Case, 20 txs/hr
 ![EOS Case, 20 txs/hr](./images/15-fee-analysis-eos-case2.png) 
-[Diagram here](../graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=20544&inputTargetBlockCPUPct=10&inputTxCPUConsumption=336&inputTxPerUserPerHour=20&inputTotalStakedAllUsers=380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
+Online Diagram at [here](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/tokenomics-graphs/graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=20544&inputTargetBlockCPUPct=10&inputTxCPUConsumption=336&inputTxPerUserPerHour=20&inputTotalStakedAllUsers=380494437&applyTransactionFees=true&inputStartingWAXBalance=553)
 
   * Adjustments
     * Target Block CPU Percent is set to 10 (== 0.1%), eliminating the elastic multiplier.
@@ -262,7 +262,7 @@ This is called the EOS case as it mimics their chain settings for block CPU targ
 
 #### Aggressive User
 ![Aggressive User](./images/16-fee-analysis-aggressive-user1.png) 
-[Diagram here](../graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=20544&inputTargetBlockCPUPct=2500&inputTxCPUConsumption=336&inputTxPerUserPerHour=7200000&inputTotalStakedAllUsers=380494437&applyTransactionFees=true&inputStartingWAXBalance=55300000)
+Online Diagram at [here](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/tokenomics-graphs/graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=20544&inputTargetBlockCPUPct=2500&inputTxCPUConsumption=336&inputTxPerUserPerHour=7200000&inputTotalStakedAllUsers=380494437&applyTransactionFees=true&inputStartingWAXBalance=55300000)
 
 This analysis is meant to demonstrate the edge case of a user with a lot of stake attempting to overwhelm the chain with transactions.
   * Adjustments
@@ -273,7 +273,7 @@ This analysis is meant to demonstrate the edge case of a user with a lot of stak
 
 #### Aggressive User, EOS Case
 ![Aggressive User](./images/17-fee-analysis-aggressive-user2.png) 
-[Diagram here](../graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=20544&inputTargetBlockCPUPct=10&inputTxCPUConsumption=336&inputTxPerUserPerHour=7200000&inputTotalStakedAllUsers=380494437&applyTransactionFees=true&inputStartingWAXBalance=55300000)
+Online Diagram at [here](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/tokenomics-graphs/graphs/stake-fee.html?inputHours=120&inputMaxBlockCPU=200000&inputFreeBlockCPUThreshold=0&inputCPUFeeScaler=10&inputEMABlockCPU=20544&inputTargetBlockCPUPct=10&inputTxCPUConsumption=336&inputTxPerUserPerHour=7200000&inputTotalStakedAllUsers=380494437&applyTransactionFees=true&inputStartingWAXBalance=55300000)
 
   * Adjustments
     * User has 55.3 Million WAX staked
@@ -281,7 +281,7 @@ This analysis is meant to demonstrate the edge case of a user with a lot of stak
   * Result
     * After about 24 hours, this account loses stake based access to resources and quickly loses all stake to fees, and is unable to execute more transactions (same as basechain case above)
 
-### Observations:
+### Observations
 **Generosity of the Base Case**: The base case scenario is notably generous. Even with a modest stake of 553 WAX, an account can sustain a transaction rate of 2tx/hr indefinitely. While this fosters a welcoming environment for users, it may be excessively generous from a network sustainability and economics perspective. We should aim to pressure this range.
 
 **Impact of Chain Load**: When the chain load is increased to 67% EMA, the impact on a basic user isn't immediate. However, when paired with a heightened transaction rate of 20 txs/hr, the system prompts for fees after 8 hours.
@@ -292,7 +292,7 @@ This analysis is meant to demonstrate the edge case of a user with a lot of stak
 
 **Aggressive User Dynamics**: Should an account with an extensive stake try to flood the chain, system defenses activate. This user rapidly depletes their resources, facing fees, and experiences a complete transaction halt within 24 hours. This steadfast defense remains consistent even in the EOS configuration, showcasing the resource system's resilience against potential high-stake abuse.
 
-### Implications:
+### Implications
 **Fine-Tuning the Base Case**: While being user-centric is vital for adoption and usability, the current base case seems overly indulgent. A revision is needed to strike a balance, ensuring a reasonably low-cost range without being overly munificent. Most likely we either increase the system stake, or we drop the target block CPU percent gradually to squeeze this range
 
 **System Robustness**: The WAX resource system exhibits durability and versatility across varied conditions, from different chain loads, staking amounts, and transaction velocities.
