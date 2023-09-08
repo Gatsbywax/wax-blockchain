@@ -10,6 +10,14 @@
                 {
                     "name": "account",
                     "type": "name"
+                },
+                {
+                    "name": "tx_fee_limit",
+                    "type": "int64"
+                },
+                {
+                    "name": "account_fee_limit",
+                    "type": "int64"
                 }
             ]
         },
@@ -38,13 +46,38 @@
                 {
                     "name": "account",
                     "type": "name"
+                },
+                {
+                    "name": "net_weight_limit",
+                    "type": "int64"
+                },
+                {
+                    "name": "cpu_weight_limit",
+                    "type": "int64"
                 }
             ]
         },
         {
             "name": "setparams",
             "base": "",
-            "fields": []
+            "fields": [
+                {
+                    "name": "cpu_fee_scaler",
+                    "type": "uint64"
+                },
+                {
+                    "name": "free_block_cpu_threshold",
+                    "type": "uint64"
+                },
+                {
+                    "name": "net_fee_scaler",
+                    "type": "uint64"
+                },
+                {
+                    "name": "free_block_net_threshold",
+                    "type": "uint64"
+                }
+            ]
         }
     ],
     "actions": [

@@ -1935,17 +1935,26 @@ BOOST_AUTO_TEST_CASE( allow_charging_fee_test ) { try {
    c.set_abi( config::system_account_name, test_contracts::txfee_api_test_abi().data());
 
    // ensure it can be called
-   BOOST_CHECK_NO_THROW( c.push_action( config::system_account_name, "setparams"_n, config::system_account_name, mutable_variant_object()) );
+   BOOST_CHECK_NO_THROW( c.push_action( config::system_account_name, "setparams"_n, config::system_account_name, mutable_variant_object()
+   ("cpu_fee_scaler", 1)
+   ("free_block_cpu_threshold", 2)
+   ("net_fee_scaler", 3)
+   ("free_block_net_threshold", 4))
+   );
    BOOST_CHECK_NO_THROW( c.push_action( config::system_account_name, "configfees"_n, config::system_account_name, mutable_variant_object()
-   ("account", "bob")) 
+   ("account", "bob")
+   ("tx_fee_limit", 0)
+   ("account_fee_limit", 0))
    );
    BOOST_CHECK_NO_THROW( c.push_action( config::system_account_name, "setfees"_n, config::system_account_name, mutable_variant_object()
-   ("account", "bob")) 
+   ("account", "bob")
+   ("net_weight_limit", 1)
+   ("cpu_weight_limit", 2))
    );
    BOOST_CHECK_NO_THROW( c.push_action( config::system_account_name, "getfees"_n, config::system_account_name, mutable_variant_object()
-   ("account", "bob") 
-   ("expected_net_pending_weight", 0) 
-   ("expected_cpu_consumed_weight", 0)) 
+   ("account", "bob")
+   ("expected_net_pending_weight", 0)
+   ("expected_cpu_consumed_weight", 0))
    );
 
    c.produce_block();
@@ -1958,13 +1967,20 @@ BOOST_AUTO_TEST_CASE( allow_charging_fee_test ) { try {
    c.set_abi( alice_account, test_contracts::txfee_api_test_abi().data());
 
    // ensure priviledged intrinsic cannot be called by regular account
-   BOOST_CHECK_EXCEPTION(  c.push_action( alice_account, "setparams"_n, alice_account, fc::mutable_variant_object()), unaccessible_api,
+   BOOST_CHECK_EXCEPTION(  c.push_action( alice_account, "setparams"_n, alice_account, fc::mutable_variant_object()
+                                 ("cpu_fee_scaler", 1)
+                                 ("free_block_cpu_threshold", 2)
+                                 ("net_fee_scaler", 3)
+                                 ("free_block_net_threshold", 4)
+                           ), unaccessible_api,
                            fc_exception_message_is( "alice does not have permission to call this API" )
    );
    
    // ensure priviledged intrinsic cannot be called by regular account
    BOOST_CHECK_EXCEPTION(  c.push_action( alice_account, "configfees"_n, alice_account, fc::mutable_variant_object()
                               ("account", "alice")
+                              ("tx_fee_limit", 0)
+                              ("account_fee_limit", 0)
                            ), unaccessible_api,
                            fc_exception_message_is( "alice does not have permission to call this API" )
    );
@@ -1972,6 +1988,8 @@ BOOST_AUTO_TEST_CASE( allow_charging_fee_test ) { try {
    // ensure priviledged intrinsic cannot be called by regular account
    BOOST_CHECK_EXCEPTION(  c.push_action( alice_account, "setfees"_n, alice_account, fc::mutable_variant_object()
                               ("account", "alice")
+                              ("net_weight_limit", 1)
+                              ("cpu_weight_limit", 2)
                            ), unaccessible_api,
                            fc_exception_message_is( "alice does not have permission to call this API" )
    );
