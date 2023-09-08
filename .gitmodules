@@ -4,12 +4,18 @@
 [submodule "libraries/chainbase"]
 	path = libraries/chainbase
 	url = https://github.com/AntelopeIO/chainbase
+[submodule "libraries/fc"]
+	path = libraries/fc
+	url = https://github.com/AntelopeIO/fc
 [submodule "libraries/eos-vm"]
 	path = libraries/eos-vm
 	url = https://github.com/AntelopeIO/eos-vm
 [submodule "libraries/softfloat"]
 	path = libraries/softfloat
 	url = https://github.com/AntelopeIO/berkeley-softfloat-3
+[submodule "libraries/yubihsm"]
+	path = libraries/yubihsm
+	url = https://github.com/Yubico/yubihsm-shell
 [submodule "libraries/rapidjson"]
 	path = libraries/rapidjson
 	url = https://github.com/Tencent/rapidjson/
