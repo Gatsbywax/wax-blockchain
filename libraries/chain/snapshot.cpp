@@ -98,6 +98,18 @@ void variant_snapshot_reader::set_section( const string& section_name ) {
    EOS_THROW(snapshot_exception, "Variant snapshot has no section named ${n}", ("n", section_name));
 }
 
+bool variant_snapshot_reader::is_section_exist( const string& section_name ) {
+   const auto& sections = snapshot["sections"].get_array();
+   for( const auto& section: sections ) {
+      if (section["name"].as_string() == section_name) {
+         cur_section = &section.get_object();
+         return true;
+      }
+   }
+
+   return false;
+}
+
 bool variant_snapshot_reader::read_row( detail::abstract_snapshot_row_reader& row_reader ) {
    const auto& rows = (*cur_section)["rows"].get_array();
    row_reader.provide(rows.at(cur_row++));
@@ -327,6 +339,49 @@ void istream_snapshot_reader::set_section( const string& section_name ) {
    EOS_THROW(snapshot_exception, "Binary snapshot has no section named ${n}", ("n", section_name));
 }
 
+bool istream_snapshot_reader::is_section_exist( const string& section_name ) {
+   auto restore_pos = fc::make_scoped_exit([this,pos=snapshot.tellg()](){
+      snapshot.seekg(pos);
+   });
+
+   const std::streamoff header_size = sizeof(ostream_snapshot_writer::magic_number) + sizeof(current_snapshot_version);
+
+   auto next_section_pos = header_pos + header_size;
+
+   while (true) {
+      snapshot.seekg(next_section_pos);
+      uint64_t section_size = 0;
+      snapshot.read((char*)&section_size,sizeof(section_size));
+      if (section_size == std::numeric_limits<uint64_t>::max()) {
+         break;
+      }
+
+      next_section_pos = snapshot.tellg() + std::streamoff(section_size);
+
+      uint64_t row_count = 0;
+      snapshot.read((char*)&row_count,sizeof(row_count));
+
+      bool match = true;
+      for(auto c : section_name) {
+         if(snapshot.get() != c) {
+            match = false;
+            break;
+         }
+      }
+
+      if (match && snapshot.get() == 0) {
+         cur_row = 0;
+         num_rows = row_count;
+
+         // leave the stream at the right point
+         restore_pos.cancel();
+         return true;
+      }
+   }
+
+   return false;
+}
+
 bool istream_snapshot_reader::read_row( detail::abstract_snapshot_row_reader& row_reader ) {
    row_reader.provide(snapshot);
    return ++cur_row < num_rows;
@@ -401,6 +456,16 @@ void istream_json_snapshot_reader::set_section( const string& section_name ) {
    impl->sec_name = section_name;
    impl->num_rows = impl->doc[section_name.c_str()]["num_rows"].GetInt();
    ilog( "reading ${section_name}, num_rows: ${num_rows}", ("section_name", section_name)( "num_rows", impl->num_rows ) );
+}
+
+bool istream_json_snapshot_reader::is_section_exist( const string& section_name ) {
+   if(impl->doc.HasMember( section_name.c_str() ) 
+      && impl->doc[section_name.c_str()].HasMember( "num_rows" )
+      && impl->doc[section_name.c_str()].HasMember( "rows" )
+      && impl->doc[section_name.c_str()]["rows"].IsArray()) {
+         return true;
+      }
+   return false;
 }
 
 bool istream_json_snapshot_reader::read_row( detail::abstract_snapshot_row_reader& row_reader ) {

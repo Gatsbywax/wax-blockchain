@@ -94,7 +94,36 @@ void resource_limits_manager::add_to_snapshot( const snapshot_writer_ptr& snapsh
 
 void resource_limits_manager::read_from_snapshot( const snapshot_reader_ptr& snapshot ) {
    resource_index_set::walk_indices([this, &snapshot]( auto utils ){
-      snapshot->read_section<typename decltype(utils)::index_t::value_type>([this]( auto& section ) {
+      using value_t = typename decltype(utils)::index_t::value_type;
+      // skip the fee_params_object if not exist
+      if (std::is_same<value_t, fee_params_object>::value) {
+         if(snapshot->check_section<fee_params_object>()){
+            snapshot->read_section<value_t>([this]( auto& section ) {
+               bool more = !section.empty();
+               while(more) {
+                  decltype(utils)::create(_db, [this, &section, &more]( auto &row ) {
+                     more = section.read_row(row, _db);
+                  });
+               }
+            });
+         }
+         return;
+      }
+      // skip the fee_limits_object if not exist
+      if (std::is_same<value_t, fee_limits_object>::value) {
+         if(snapshot->check_section<fee_limits_object>()){
+            snapshot->read_section<value_t>([this]( auto& section ) {
+               bool more = !section.empty();
+               while(more) {
+                  decltype(utils)::create(_db, [this, &section, &more]( auto &row ) {
+                     more = section.read_row(row, _db);
+                  });
+               }
+            });
+         }
+         return;
+      }
+      snapshot->read_section<value_t>([this]( auto& section ) {
          bool more = !section.empty();
          while(more) {
             decltype(utils)::create(_db, [this, &section, &more]( auto &row ) {

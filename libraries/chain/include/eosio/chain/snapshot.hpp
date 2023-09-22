@@ -273,6 +273,11 @@ namespace eosio { namespace chain {
          read_section(detail::snapshot_section_traits<T>::section_name(), f);
       }
 
+      template<typename T>
+      bool check_section() {
+         return is_section_exist(detail::snapshot_section_traits<T>::section_name());
+      }
+
       virtual void validate() const = 0;
 
       virtual void return_to_header() = 0;
@@ -282,6 +287,7 @@ namespace eosio { namespace chain {
       protected:
          virtual void set_section( const std::string& section_name ) = 0;
          virtual bool read_row( detail::abstract_snapshot_row_reader& row_reader ) = 0;
+         virtual bool is_section_exist( const string& section_name ) = 0;
          virtual bool empty( ) = 0;
          virtual void clear_section() = 0;
    };
@@ -310,6 +316,7 @@ namespace eosio { namespace chain {
          void validate() const override;
          void set_section( const string& section_name ) override;
          bool read_row( detail::abstract_snapshot_row_reader& row_reader ) override;
+         bool is_section_exist( const string& section_name ) override;
          bool empty ( ) override;
          void clear_section() override;
          void return_to_header() override;
@@ -360,6 +367,7 @@ namespace eosio { namespace chain {
 
          void validate() const override;
          void set_section( const string& section_name ) override;
+         bool is_section_exist( const string& section_name ) override;
          bool read_row( detail::abstract_snapshot_row_reader& row_reader ) override;
          bool empty ( ) override;
          void clear_section() override;
@@ -381,6 +389,7 @@ namespace eosio { namespace chain {
 
          void validate() const override;
          void set_section( const string& section_name ) override;
+         bool is_section_exist( const string& section_name ) override;
          bool read_row( detail::abstract_snapshot_row_reader& row_reader ) override;
          bool empty ( ) override;
          void clear_section() override;
