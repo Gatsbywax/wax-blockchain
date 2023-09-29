@@ -30,7 +30,7 @@ Where:
 
 - **base_weight**: A fixed constant providing a baseline to both action and net weights.
 
-**Note** This Fee equation has similar characteristics to this as block CPU usage increases [graph](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/tokenomics-graphs/graphs/fee-profile.html)
+**Note** This fee equation is described [here](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/proposals/general-fee-formula.md)
 
 ## Analysis
 

@@ -33,8 +33,7 @@ where:
 * ema_block_cpu is the exponential moving average of the current block cpu usage. This is updated for every block using the posted block CPU usage by the producing node
 * free_block_cpu_threshold is the value of the exponential moving block value, ema_block_cpu_ratio, at which fees start being charged. This is a constant, which should be configurable via contract updates. This value will typically be set to 0
 
-**Note** This Fee equation has the same characteristics as this [graph](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/tokenomics-graphs/graphs/fee-profile.html)
-
+**Note** This fee equation is described [here](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/proposals/general-fee-formula.md)
 
 ## Advantages
 
