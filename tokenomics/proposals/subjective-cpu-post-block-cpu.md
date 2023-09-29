@@ -1,4 +1,4 @@
-# Semi Subjective Fee Model for WAX: Producer Submitted Block CPU Times
+# Fee Model for WAX (Semi-subjective): Producer Submitted Block CPU Times
 
 This approach aims to achieve the goal of non-subjective fee calculation while still retaining the accuracy of measuring a transaction's impact on CPU resources.
 
