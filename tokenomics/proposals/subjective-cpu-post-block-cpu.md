@@ -15,10 +15,25 @@ The node then calculates a scaling factor based on the ratio of its measured CPU
 
 Scaling Factor = Node’s Measured CPU Time / Producer’s Reported CPU Time
 
-## Scaled CPU Calculation
+## Scaled CPU Calculation for Fee Calculation
 For the next block's transactions, the node scales its CPU calculations using the scaling factor. If a transaction requires X units of CPU time to process on the node's machine, then:
 
-Scaled CPU Time = X × Scaling Factor
+scaled_tx_cpu_consumption = Scaled CPU Time = X × Scaling Factor
+
+## Fee Calculation
+For the next block's transactions, the node scales its CPU calculations using the scaling factor. If a transaction requires X units of CPU time to process on the node's machine, then:
+
+```
+fee = fee_scaler * (1 / (max_block_cpu - ema_block_cpu) - 1 / (max_block_cpu - free_block_cpu_threshold)) * scaled_tx_cpu_consumption
+```
+where:
+* fee_scaler is a constant that will be massaged experimentally to give reasonable fee values once the free threshold is passed in the exponential block moving average
+* max_block_cpu is the maximum cpu permitted to be used in a block which is set via config already
+* ema_block_cpu is the exponential moving average of the current block cpu usage. This is updated for every block using the posted block CPU usage by the producing node
+* free_block_cpu_threshold is the value of the exponential moving block value, ema_block_cpu_ratio, at which fees start being charged. This is a constant, which should be configurable via contract updates. This value will typically be set to 0
+
+**Note** This Fee equation has the same characteristics as this [graph](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/tokenomics-graphs/graphs/fee-profile.html)
+
 
 ## Advantages
 
@@ -40,4 +55,4 @@ Scaled CPU Time = X × Scaling Factor
 
 ## Conclusion
 
-The proposed approach provides a way to derive a more objective and real-time fee calculation based on actual resource consumption. However, it introduces certain complexities and potential vulnerabilities. The resulting fee calculations are likely to be closer than a fully subjective CPU measure but would still not be fully synchronized.
+The proposed approach provides a way to derive a more objective (but not fully objective) and real-time fee calculation based on actual resource consumption. However, it introduces certain complexities and potential vulnerabilities. The resulting fee calculations are likely to be closer than a fully subjective CPU measure but would still not be fully synchronized.

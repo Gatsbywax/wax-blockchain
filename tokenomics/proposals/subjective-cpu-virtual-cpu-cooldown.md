@@ -34,5 +34,9 @@ where α, β, and gamma are constants to be determined based on network dynamics
 
 * **Implementation:** Nodes will need mechanisms to adjust fees after the fact, which could introduce complexity into transaction settlement and accounting.
 
+### Criticisms and Observations ###
+1. **Critiicism:** seems too difficult to synchronize the knowledge about the actual fee balances across the network.
+   **Response:** Not sure how that could be since we are cooling down to an objective measure, which would ensure eventual synchronicity, similar to how staking currently works. Maybe criticism needs more explanation?
+
 ### Conclusion
 In conclusion, while the proposed two-phase fee model has potential advantages, it will be crucial to model, test, and simulate this approach rigorously before full-scale implementation. We'd also need to monitor and adjust α and β values over time based on real-world data to ensure the fee system remains fair, efficient, and beneficial to the network's health.

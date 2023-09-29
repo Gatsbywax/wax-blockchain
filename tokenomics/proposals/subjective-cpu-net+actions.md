@@ -19,9 +19,10 @@ Fee = (NetConsumed × NetRate) + (NumActions × ActionRate) + BaseFee
 1. **Objectivity**: This formula relies on concrete metrics (Net consumed and number of actions) rather than subjective metrics like CPU, ensuring that the fee calculation is consistent across nodes.
 2. **Transparency**: Users can easily understand how fees are derived. They can optimize their transactions based on the Net they consume or reduce the number of actions to minimize fees.
 3. **Flexibility**: The rates (NetRate and ActionRate) can be adjusted by the network to reflect the actual costs of resources and to maintain network health.
+4. **Anti-spam**: Serves as a form of anti-spam, since transactions will be required to make _some_ form of payment to get transactions through
 
 ### Disadvantages:
-1. Does not scale with increased network activity (Deal breaker)
+1. Does not scale with increased network activity. Regardless of how busy the chain is, fees are always the same in this regime. (Deal breaker???)
 2. **May Not Reflect Real Costs**: While CPU is a subjective metric, it captures the computational effort required to process a transaction. Transactions that consume more Net might not always be computationally intensive, and vice versa.
 3. **Potential for Abuse**: If not properly balanced, users might be incentivized to create transactions that consume minimal Net but are computationally heavy, potentially creating a bottleneck in the network.
 4. **Increased Complexity**: Introducing another dimension to the fee calculation (number of actions) means developers and users need to be more mindful of the structure of their transactions.
@@ -33,4 +34,9 @@ Fee = (NetConsumed × NetRate) + (NumActions × ActionRate) + BaseFee
 ## Conclusion
 ---
 While basing transaction fees on Net consumed and the number of actions offers a more objective alternative to CPU-based fees, it comes with its own set of challenges and trade-offs. It's essential to strike a balance to ensure that the fees fairly represent the cost of network resources, without inadvertently creating incentives for users to structure transactions in ways that might harm network performance. Regularly reviewing and adjusting the rates and monitoring network health will be crucial if such a fee structure is adopted.
-Further, the fee does bnot increase as the network congests, leaving this unusable in the current form.
+Further, the fee does not increase as the network congests, possibly leaving this unusable in the current form.
+
+
+## Possible Improvements:
+
+1. See [the description for the combination of producers posting their block CPU values, the subjective fee equation and this proposals fee metric, which should allow for increasing fees when the chain gets congested.](https://github.com/worldwide-asset-exchange/wax-blockchain/blob/tokenomics-graphs/tokenomics/proposals/subjective-cpu-net%2Bactions-post-block-cpu.md)
