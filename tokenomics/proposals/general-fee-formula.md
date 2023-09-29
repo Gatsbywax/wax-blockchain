@@ -39,4 +39,4 @@ As fees climb toward infinity we should expect this to have a mitigating effect 
 
 The formula will accommodate network variations in network load and transaction resource consumption, while offering flexibility through configurable parameters.
 
-*Examine and interactively manipulated the fee equation in this* [graph](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/tokenomics-graphs/graphs/fee-profile.html)
+**Examine and interactively manipulated the fee equation in this** [graph](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/tokenomics-graphs/graphs/fee-profile.html)
