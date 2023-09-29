@@ -12,7 +12,7 @@ The design proposed is not meant to be complete in every detail that would need 
 
 Virtual Fee = CPU Fee Scaler × (1 / (Max Block CPU - EMA Block CPU) - 1 / (Max Block CPU)) × Tx CPU Consumption
 
-**Note** This fee equation is described [here](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/proposals/general-fee-formula.md)
+**Note** This fee equation is described [here](https://github.com/worldwide-asset-exchange/wax-blockchain/blob/tokenomics-graphs/tokenomics/proposals/general-fee-formula.md)
 
 ### Actual Fee Calculation (Cool Down Period - 24 hours???)
 * Over time, the virtual fee cools down (or adjusts) based on the actual resources utilized by the transaction, specifically "Net consumed" and "number of actions".

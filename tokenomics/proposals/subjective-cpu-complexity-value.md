@@ -23,7 +23,7 @@ This is an actual measure of how the transaction impacts the block's available C
   - `MaxBlockComplexity` is a pre-defined value indicating the maximum complexity acceptable for a single block.
   - `EMABlockComplexity` is an Exponential Moving Average of the complexity over recent blocks. This offers a smoothed out representation of the complexity trend over time.
 
-  **Note** This fee equation is described [here](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/proposals/general-fee-formula.md)
+  **Note** This fee equation is described [here](https://github.com/worldwide-asset-exchange/wax-blockchain/blob/tokenomics-graphs/tokenomics/proposals/general-fee-formula.md)
 
 ## Analysis:
 

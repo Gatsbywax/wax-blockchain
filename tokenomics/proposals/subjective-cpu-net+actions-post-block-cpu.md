@@ -30,7 +30,7 @@ Where:
 
 - **base_weight**: A fixed constant providing a baseline to both action and net weights.
 
-**Note** This fee equation is described [here](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/proposals/general-fee-formula.md)
+**Note** This fee equation is described [here](https://github.com/worldwide-asset-exchange/wax-blockchain/blob/tokenomics-graphs/tokenomics/proposals/general-fee-formula.md)
 
 ## Analysis
 
