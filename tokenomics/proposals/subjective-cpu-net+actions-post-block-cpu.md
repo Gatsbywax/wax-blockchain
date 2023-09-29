@@ -1,41 +1,52 @@
-The given formula establishes a fee calculation mechanism that relies on several components: network bandwidth (net), the number of actions in a transaction, and an underlying exponential moving average (EMA) of block CPU usage.
+# WAX Blockchain Fee Involving Net, Actions and Objective Block CPU EMA
 
-Fee Formula:
-\text{fee} = \text{fee_scaler} \times \left( \frac{1}{{\text{max_block_cpu} - \text{ema_block_cpu}}} - \frac{1}{{\text{max_block_cpu} - \text{free_block_cpu_threshold}}} \right) \times \left( \text{net_weight} \times \text{tx_net_consumption} + \text{actions_weight} \times \text{num_actions_in_tx} + \text{base_weight} \right)
+One primary concern is to find a fee calculation utilizing objective measures.
+The design proposed is not meant to be complete in every detail that would need adjustment, but gives the important mechanics of the approach.
 
-fee_scaler: A coefficient that adjusts the resultant fee. This can be tweaked based on experimental data to obtain desired fee levels.
+## Proposed Solution
 
-max_block_cpu: Represents the upper CPU limit that can be consumed within a single block. This is set via configurations.
+Allow producer nodes to set their CPU time for a block when they produce it. This method provides an objective value for the block CPU across the entire network.
 
-ema_block_cpu: Exponential moving average of the current block's CPU usage. Updated for each block based on the posted CPU usage by the producing node.
+The transaction fee can be based on both the network bandwidth (Net) consumed and the number of actions in a transaction. The modified formula for fee calculation is presented as:
 
-free_block_cpu_threshold: The CPU usage threshold at which fees start to be charged. Typically set to 0 but is configurable.
+\[ \text{fee} = \text{fee_scaler} \times \left( \frac{1} {\text{max_block_cpu} - \text{ema_block_cpu}} - \frac{1} {\text{max_block_cpu} - \text{free_block_cpu_threshold}} \right) \times \left( \text{net_weight} \times \text{tx_net_consumption} + \text{actions_weight} \times \text{num_actions_in_tx} + \text{base_weight} \right) \]
 
-net_weight: A constant applied per unit of network bandwidth consumed by a transaction.
+Where:
+- **fee_scaler**: A constant tweaked experimentally to produce reasonable fee values once the threshold in the exponential block moving average is surpassed.
 
-tx_net_consumption: Represents the actual network bandwidth consumed by a transaction.
+- **max_block_cpu**: The preset maximum CPU allowed for a block.
 
-actions_weight: A constant applied per action present in a transaction.
+- **ema_block_cpu**: The exponential moving average of the current block's CPU usage, updated for every block based on the CPU usage posted by the producing node.
 
-num_actions_in_tx: The total number of actions in a given transaction.
+- **free_block_cpu_threshold**: The value at which fees begin to be charged, typically set to 0 but configurable through contract updates.
 
-base_weight: A fixed constant that provides a foundational cost, ensuring that actions and net weights aren't undervalued.
+- **net_weight**: A constant applied for each unit of network bandwidth used.
 
-Analysis:
-Objective Measurement: The proposal to have producer nodes set their CPU time for a block when they produce it aims to standardize the measure of block CPU usage across the network, making it less subjective.
+- **tx_net_consumption**: The network bandwidth amount used by the transaction.
 
-Complexity vs Fairness: While the formula is relatively complex, it attempts to encompass multiple facets of transaction processing – the CPU usage, the network bandwidth, and the number of actions. This ensures a more holistic fee calculation.
+- **actions_weight**: A constant applied for each action within the transaction.
 
-Elasticity Based on Network Load: The formula's EMA component, \left( \frac{1}{{\text{max_block_cpu} - \text{ema_block_cpu}}} - \frac{1}{{\text{max_block_cpu} - \text{free_block_cpu_threshold}}} \right), provides elasticity. When the network is less utilized (lower ema_block_cpu), the fees will be lower, and as the network gets busier, the fees will increase. This dynamic pricing can help balance the network load.
+- **num_actions_in_tx**: The total number of actions in the transaction.
 
-Encouraging Efficient Transactions: By factoring in the number of actions in a transaction, the formula encourages users to create efficient transactions. More actions will lead to higher fees.
+- **base_weight**: A fixed constant providing a baseline to both action and net weights.
 
-Base Fee Component: The base_weight ensures that there's a minimum fee, preventing malicious actors from spamming the network with negligible-cost transactions.
+**Note** This Fee equation has similar characteristics to this as block CPU usage increases [graph](https://raw.githack.com/worldwide-asset-exchange/wax-blockchain/tokenomics-graphs/graphs/fee-profile.html)
 
-Potential for Variability: Since ema_block_cpu is dynamic and changes with every block, the fee will exhibit variability. This might be challenging for users who desire predictable fees.
+## Analysis
 
-Threshold for Free Transactions: The free_block_cpu_threshold serves as a benchmark below which transactions might not incur fees. This can act as an incentive for users to transact during off-peak times.
+### Strengths:
 
-Tunability: Constants like fee_scaler, net_weight, actions_weight, and base_weight allow for fine-tuning of the formula based on real-world usage and network conditions.
+1. **Objectivity**: By having producers set their CPU time for a block, the system creates a consistent block CPU value, eliminating disparities. Net and transaction actions is also an objective measure. The combination yields an fully objective fee calculation.
+2. **Elasticity Based on Network Load**: The formula's EMA component, provides elasticity. When the network is less utilized (lower ema_block_cpu), the fees will be lower, and as the network gets busier, the fees will increase. This dynamic pricing will help balance the network load and prevent DoS attacks.
+3. **Fairness**: Incorporating the number of actions ensures that complex transactions, which naturally consume more resources, are charged accordingly.
+5. **Tunability**: Constants like fee_scaler, net_weight, actions_weight, and base_weight allow for fine-tuning of the formula based on real-world usage and network conditions.
 
-In conclusion, the proposed approach is a well-thought-out strategy to balance network resources, encourage efficient usage, and maintain fair fee distribution. However, its effectiveness will require regular monitoring and potential adjustments based on the evolving network conditions and user behaviors.
+### Concerns:
+
+1. **Complexity**: Multiple variables and constants mean the network must fine-tune these regularly for optimal performance.
+2. **Potential for Gaming**: Nodes might manipulate CPU times to influence fees. However, producers that do would likely be voted out.
+3. **User Experience**: Sudden spikes in fees due to high network usage might deter users from transacting during peak times.
+4. **Awkard Contract Development** In order to reduce the number of actions in their contract, developers might start using sub optimal programming patterns to allow for less in-line actions resulting from their contract logic
+5. **High CPU Actions Do Not get Penalized** Since actions are scored the same regardless of their CPU consumption, some traasnactioons will take up more than their fair share of CPU time and incur the same fee as a transaction with low cpu usage and the same number of actions.
+
+Overall, the proposed mechanism addresses the CPU subjectivity concern while ensuring fees reflect an approximation of resources consumed. Proper implementation and regular fine-tuning would be vital for its success.

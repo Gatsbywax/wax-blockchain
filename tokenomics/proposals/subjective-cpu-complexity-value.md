@@ -1,6 +1,7 @@
 # Desubjectifying Fee Model for WAX Blockchain Involving Complexity Estimation
 
 This proposed transaction fee model aims to address the subjective nature of CPU as a resource on the WAX blockchain. Given that CPU calculation varies across different nodes, the model introduces an objective approach to measure and charge for transactional complexity.
+The design proposed is not meant to be complete in every detail that would need adjustment, but gives the important mechanics of the approach.
 
 ## Proposed Approach:
 
@@ -38,7 +39,7 @@ This is an actual measure of how the transaction impacts the block's available C
 
 1. **Criticism:** If we allow the HTTP API do the complexity validation and reject the transaction if the estimation is too low, that will decrease the number of dropped transactions at the BP. Still, it opens too many possibilities for a transaction to disappear, so the UX would suffer.
 
-   **Response:** (Reinterpreting the concern above) Since API nodes would run lesser hardware than producers, a transaction with a tight estimation value that would make it through at the producer level might get rejected at the API level. This might cause estimates to be higher than necessary. If we incorporate a tolerances threshold (see improvements below), individually configurable for every node, than API nodes could run looser tolerance parameters than producer nodes, allowing for less dropped transactions that are estimating efficiently. This also opens the possibility of including metadata in a transaction submission response that indicates the calculated complexity at the node, giving an indicator for UX about how likely the transaction is to be accepted at the producer level.
+   **Response:** (Reinterpreting the concern above) Since API nodes would run lesser hardware than producers, a transaction with a tight estimation value that would make it through at the producer level might get rejected at the API level. This might cause estimates to be higher than necessary. If we incorporate a tolerances threshold (see improvements below), individually configurable for every node, then API nodes could run looser tolerance parameters than producer nodes, allowing for less dropped transactions that are estimated efficiently. This also opens the possibility of including metadata in a transaction submission response that indicates the calculated complexity at the node, giving an indicator for UX about how likely the transaction is to be accepted at the producer level.
 
 ## Possible Improvements:
 

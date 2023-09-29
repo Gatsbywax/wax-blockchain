@@ -6,6 +6,7 @@ This solution suggests using a "virtual fee" based on the subjective CPU and the
 
 ### Virtual Fee Calculation (Immediate Post-Transaction)
 This is a preliminary fee based on the CPU consumption. It serves as an immediate indication of the cost but might not be the final fee to be deducted.
+The design proposed is not meant to be complete in every detail that would need adjustment, but gives the important mechanics of the approach.
 
 **Formula:**
 

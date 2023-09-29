@@ -1,6 +1,7 @@
 # Non-subjective Fee Calculation Based on Network (Net) and Transaction Actions
 
 Using the network (Net) consumed and the number of actions in a transaction as a basis for the fee calculation provides an alternative to CPU-based fees that may be more objective, as Net is a concrete resource (it represents the storage required for transaction history) and the number of actions is an easily countable metric. Here's how such a formula might look:
+The design proposed is not meant to be complete in every detail that would need adjustment, but gives the important mechanics of the approach.
 
 ### Fee Calculation:
 
