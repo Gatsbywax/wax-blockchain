@@ -1,6 +1,7 @@
 # Less Subjective Fee Calculation Approach via Producer Submitted Block CPU Times
 
 This approach aims to achieve the goal of non-subjective fee calculation while still retaining the accuracy of measuring a transaction's impact on CPU resources.
+
 The design proposed is not meant to be complete in every detail that would need adjustment, but gives the important mechanics of the approach.
 
 ---

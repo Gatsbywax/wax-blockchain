@@ -2,10 +2,11 @@
 
 The challenge here revolves around CPU being a subjective resource, which means that its calculation varies from node to node. This can introduce discrepancies in fee calculations, as the cost basis (CPU) is not consistent. The proposition is to continue using the CPU as a basis for fee calculations (given that it well captures the transaction's cost to run on a node) but find a way to make it non-subjective.
 
-This solution suggests using a "virtual fee" based on the subjective CPU and then transitioning the fee to be based on "Net consumed" and "number of actions" in the transaction. The idea is to desubjectify in a similar fashion to staking currently does by having the fees be actually charged at an objective rate after say, 24 hours. Therefore, this approach can be seen as a two-phase fee calculation:
+This solution suggests using a "virtual fee" based on the subjective CPU and then transitioning the fee to be based on "Net consumed" and "number of actions" in the transaction. The idea is to desubjectify in a similar fashion to how staking currently does it by having the fees be actually finalized at an objective rate after say, 24 hours. Therefore, this approach can be seen as a two-phase fee calculation:
 
 ### Virtual Fee Calculation (Immediate Post-Transaction)
 This is a preliminary fee based on the CPU consumption. It serves as an immediate indication of the cost but might not be the final fee to be deducted.
+
 The design proposed is not meant to be complete in every detail that would need adjustment, but gives the important mechanics of the approach.
 
 **Formula:**

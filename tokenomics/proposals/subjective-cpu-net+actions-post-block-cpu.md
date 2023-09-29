@@ -1,6 +1,7 @@
 # WAX Blockchain Fee Involving Net, Actions and Objective Block CPU EMA
 
 One primary concern is to find a fee calculation utilizing objective measures.
+
 The design proposed is not meant to be complete in every detail that would need adjustment, but gives the important mechanics of the approach.
 
 ## Proposed Solution
