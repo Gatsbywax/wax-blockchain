@@ -1,4 +1,4 @@
-## Non-subjective CPU-Based Two-Phase Fee Model
+## Fee Model for WAX: CPU-Based Two-Phase Fee Model
 
 The challenge here revolves around CPU being a subjective resource, which means that its calculation varies from node to node. This can introduce discrepancies in fee calculations, as the cost basis (CPU) is not consistent. The proposition is to continue using the CPU as a basis for fee calculations (given that it well captures the transaction's cost to run on a node) but find a way to make it non-subjective.
 

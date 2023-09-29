@@ -1,4 +1,4 @@
-# Desubjectifying Fee Model for WAX Blockchain Involving Complexity Estimation
+# Fee Model for WAX: Complexity Estimation
 
 This proposed transaction fee model aims to address the subjective nature of CPU as a resource on the WAX blockchain. Given that CPU calculation varies across different nodes, the model introduces an objective approach to measure and charge for transactional complexity.
 

@@ -1,4 +1,4 @@
-# WAX Blockchain Fee Involving Net, Actions and Objective Block CPU EMA
+# Fee Model for WAX: Net, Actions and Objective Block CPU EMA
 
 One primary concern is to find a fee calculation utilizing objective measures.
 
