@@ -9,7 +9,7 @@ Allow producer nodes to set their CPU time for a block when they produce it. Thi
 
 The transaction fee can be based on both the network bandwidth (Net) consumed and the number of actions in a transaction. The modified formula for fee calculation is presented as:
 
-\[ \text{fee} = \text{fee_scaler} \times \left( \frac{1} {\text{max_block_cpu} - \text{ema_block_cpu}} - \frac{1} {\text{max_block_cpu} - \text{free_block_cpu_threshold}} \right) \times \left( \text{net_weight} \times \text{tx_net_consumption} + \text{actions_weight} \times \text{num_actions_in_tx} + \text{base_weight} \right) \]
+fee = fee_scaler * ((1 / (max_block_cpu - ema_block_cpu)) - (1 / (max_block_cpu - free_block_cpu_threshold))) * (net_weight * tx_net_consumption + actions_weight * num_actions_in_tx + base_weight)
 
 Where:
 - **fee_scaler**: A constant tweaked experimentally to produce reasonable fee values once the threshold in the exponential block moving average is surpassed.
