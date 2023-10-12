@@ -19,7 +19,7 @@ fee = fee_scaler * ((1 / (max_block_cpu - ema_block_cpu)) - (1 / (max_block_cpu 
 
 - **free_block_cpu_threshold**: Defines the CPU usage threshold at which transaction fees begin to apply. This value is typically set to 0 but can be modified through contract updates to adapt to network requirements.
 
-- **tx_cost_metric**: A weight assigned to individual transactions, representing the amount of chain resources consumed. This metric allows the fee to be adjusted proportionally to the resources utilized by a transaction. This maybe CPU, Net, action count, a combination of any of them, etc.
+- **tx_cost_metric**: A weight assigned to individual transactions, representing the amount of chain resources consumed. This metric allows the fee to be adjusted proportionally to the resources utilized by a transaction. This maybe CPU, Net, action count, a combination of any of them, etc. This value is somewhat analogous to gas in EVM world.
 
 #### Special Case: free_block_cpu_threshold = 0
 
