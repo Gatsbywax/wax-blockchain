@@ -23,13 +23,13 @@ fee = fee_scaler * ((1 / (max_block_cpu - ema_block_cpu)) - (1 / (max_block_cpu 
 
 #### Special Case: free_block_cpu_threshold = 0
 
-In the scenario where `free_block_cpu_threshold` is set to 0, the fee formula simplifies to:
+In the scenario where `free_block_cpu_threshold` is set to 0, the fee formula expands to:
 
 ```
 fee = fee_scaler * tx_cost_metric / (max_block_cpu - ema_block_cpu) - fee_scaler * tx_cost_metric / max_block_cpu
 ```
 
-As a function of ema_block_cpu, the term on the right is a constant designed to make sure the transaction fees equal zero when ema_block_cpu equals zero. Ie no chain activity implies zero fees for the first transaction. That is a bit of an arbitrary choice, so we can consider the case where the right hand constant is removed:
+As a function of ema_block_cpu, the term on the right is a constant designed to make sure the transaction fees equal zero when ema_block_cpu equals zero. In other words, no chain activity implies zero fees for the first transaction. Starting fees at zero is an arbitrary choice, so we can consider the case where the right hand constant is removed:
 
 ```
 fee = fee_scaler * tx_cost_metric / (max_block_cpu - ema_block_cpu)
